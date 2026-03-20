@@ -2,1293 +2,444 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@EliteArchangel | VALKIRIA & KILLNET INFO | PORTFOLIO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ArchangelVPN | Supreme Protection</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Courier New', monospace;
-        }
-        
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap');
+
         :root {
-            --blood-red: #ff0000;
-            --dark-red: #8b0000;
-            --void-black: #000000;
-            --pure-white: #ffffff;
-            --terminal-gray: #cccccc;
-            --hover-red: #ff3333;
-            --shadow-red: rgba(255, 0, 0, 0.5);
+            --bg: #03070C;
+            --accent: #D4AF37;
+            --accent-glow: rgba(212, 175, 55, 0.4);
+            --white: #FFFFFF;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+            --text-off: #64748B;
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
         body {
-            background-color: var(--void-black);
-            color: var(--pure-white);
-            overflow-x: hidden;
-            position: relative;
-            min-height: 100vh;
-        }
-        
-        /* Анимированный фон */
-        .matrix-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-            opacity: 0.1;
-            background-image: 
-                linear-gradient(90deg, transparent 49%, var(--blood-red) 50%, transparent 51%),
-                linear-gradient(transparent 49%, var(--blood-red) 50%, transparent 51%);
-            background-size: 50px 50px;
-            animation: gridMove 30s linear infinite;
-        }
-        
-        @keyframes gridMove {
-            0% { background-position: 0 0; }
-            100% { background-position: 50px 50px; }
-        }
-        
-        .particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-        }
-        
-        .particle {
-            position: absolute;
-            width: 2px;
-            height: 2px;
-            background-color: var(--blood-red);
-            border-radius: 50%;
-            animation: float 15s infinite linear;
-        }
-        
-        @keyframes float {
-            0% {
-                transform: translateY(100vh) rotate(0deg);
-                opacity: 0;
-            }
-            10% {
-                opacity: 1;
-            }
-            90% {
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(-100px) rotate(360deg);
-                opacity: 0;
-            }
-        }
-        
-        /* Лоадер при входе */
-        .loader-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--void-black);
+            background-color: var(--bg);
+            color: var(--white);
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            height: 100vh;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 1s ease-out;
         }
-        
-        .killnet-loader {
-            width: 200px;
-            height: 200px;
-            position: relative;
-            margin-bottom: 30px;
-        }
-        
-        .loader-circle {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border: 5px solid transparent;
-            border-top-color: var(--blood-red);
-            border-radius: 50%;
-            animation: spin 2s linear infinite;
-        }
-        
-        .loader-circle:nth-child(2) {
-            width: 80%;
-            height: 80%;
-            top: 10%;
-            left: 10%;
-            border-top-color: var(--pure-white);
-            animation: spin 1.5s linear infinite reverse;
-        }
-        
-        .loader-circle:nth-child(3) {
-            width: 60%;
-            height: 60%;
-            top: 20%;
-            left: 20%;
-            border-top-color: var(--blood-red);
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .loader-k {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 4rem;
-            font-weight: 900;
-            color: var(--blood-red);
-            text-shadow: 0 0 20px var(--blood-red);
-            animation: pulse 1.5s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-            50% { opacity: 0.5; transform: translate(-50%, -50%) scale(1.1); }
-        }
-        
-        .loader-text {
-            color: var(--pure-white);
-            font-size: 1.2rem;
-            text-align: center;
-            margin-top: 20px;
-            opacity: 0;
-            animation: fadeIn 2s forwards 1s;
-        }
-        
-        @keyframes fadeIn {
-            to { opacity: 1; }
-        }
-        
-        .loader-progress {
-            width: 300px;
-            height: 3px;
-            background: rgba(255, 255, 255, 0.1);
-            margin-top: 20px;
-            border-radius: 3px;
-            overflow: hidden;
-        }
-        
-        .loader-bar {
-            height: 100%;
-            width: 0%;
-            background: var(--blood-red);
-            animation: progress 3s forwards;
-            box-shadow: 0 0 10px var(--blood-red);
-        }
-        
-        @keyframes progress {
-            to { width: 100%; }
-        }
-        
-        /* Основной контейнер */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            opacity: 0;
-            animation: pageIn 1s forwards 3s;
-        }
-        
-        @keyframes pageIn {
-            to { opacity: 1; }
-        }
-        
-        /* Навигация с анимациями */
-        .nav-container {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin: 40px 0;
-            flex-wrap: wrap;
-        }
-        
-        .nav-btn {
-            background: transparent;
-            border: 2px solid var(--blood-red);
-            color: var(--pure-white);
-            padding: 15px 30px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .nav-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            transition: left 0.5s;
-        }
-        
-        .nav-btn:hover {
-            background: var(--blood-red);
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px var(--shadow-red);
-        }
-        
-        .nav-btn:hover::before {
-            left: 100%;
-        }
-        
-        .nav-btn.active {
-            background: var(--blood-red);
-            box-shadow: 0 0 30px var(--shadow-red);
-            animation: btnGlow 2s infinite;
-        }
-        
-        @keyframes btnGlow {
-            0%, 100% { box-shadow: 0 0 20px var(--shadow-red); }
-            50% { box-shadow: 0 0 40px var(--shadow-red); }
-        }
-        
-        /* Заголовок */
-        .header {
-            text-align: center;
-            padding: 40px 20px;
-            margin-bottom: 40px;
-            position: relative;
-        }
-        
-        .main-title {
-            font-size: 3.5rem;
-            font-weight: 900;
-            color: var(--blood-red);
-            text-transform: uppercase;
-            letter-spacing: 5px;
-            margin-bottom: 20px;
-            position: relative;
-            display: inline-block;
-        }
-        
-        .main-title::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: var(--blood-red);
-            transform: scaleX(0);
-            transform-origin: left;
-            animation: titleLine 1s forwards 3.5s;
-        }
-        
-        @keyframes titleLine {
-            to { transform: scaleX(1); }
-        }
-        
-        .subtitle {
-            font-size: 1.3rem;
-            color: var(--terminal-gray);
-            max-width: 800px;
-            margin: 0 auto;
-            line-height: 1.6;
-            opacity: 0;
-            animation: fadeUp 1s forwards 4s;
-        }
-        
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        /* Секции */
-        .section {
-            display: none;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid var(--blood-red);
-            padding: 40px;
-            margin-bottom: 40px;
-            position: relative;
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s ease;
-        }
-        
-        .section.active {
-            display: block;
-            opacity: 1;
-            transform: translateY(0);
-            animation: sectionIn 0.8s ease;
-        }
-        
-        @keyframes sectionIn {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .section-title {
-            font-size: 2rem;
-            color: var(--pure-white);
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid var(--blood-red);
-            position: relative;
-            display: inline-block;
-        }
-        
-        .section-title::before {
-            content: '#';
-            color: var(--blood-red);
-            margin-right: 10px;
-        }
-        
-        /* Проекты */
-        .projects-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 30px;
-            margin-top: 30px;
-        }
-        
-        .project-card {
-            background: rgba(255, 0, 0, 0.05);
-            border: 1px solid var(--blood-red);
-            padding: 30px;
-            transition: all 0.4s ease;
-            position: relative;
-            overflow: hidden;
-            cursor: pointer;
-        }
-        
-        .project-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(45deg, transparent, rgba(255, 0, 0, 0.1), transparent);
-            transform: translateX(-100%);
-            transition: transform 0.6s;
-        }
-        
-        .project-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px var(--shadow-red);
-            background: rgba(255, 0, 0, 0.1);
-        }
-        
-        .project-card:hover::before {
-            transform: translateX(100%);
-        }
-        
-        .project-icon {
-            font-size: 3rem;
-            color: var(--blood-red);
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        
-        .project-title {
-            font-size: 1.5rem;
-            color: var(--pure-white);
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        
-        .project-desc {
-            color: var(--terminal-gray);
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
-        
-        /* Модальное окно с деталями проекта */
-        .modal-overlay {
+
+        /* --- ЭФФЕКТЫ ФОНА --- */
+        #canvas-bg {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.5s ease;
+            inset: 0;
+            z-index: -1;
+            filter: blur(80px);
+            opacity: 0.5;
+            transition: opacity 2s;
         }
-        
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        .modal {
-            background: var(--void-black);
-            border: 3px solid var(--blood-red);
-            width: 90%;
-            max-width: 800px;
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 40px;
-            position: relative;
-            transform: scale(0.8);
-            transition: transform 0.5s ease;
-        }
-        
-        .modal-overlay.active .modal {
-            transform: scale(1);
-        }
-        
-        .modal-close {
+
+        .bg-glow {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            background: none;
-            border: none;
-            color: var(--pure-white);
-            font-size: 2rem;
-            cursor: pointer;
-            transition: color 0.3s;
-        }
-        
-        .modal-close:hover {
-            color: var(--blood-red);
-        }
-        
-        .modal-title {
-            font-size: 2rem;
-            color: var(--blood-red);
-            margin-bottom: 20px;
-        }
-        
-        .modal-schema {
-            background: rgba(255, 0, 0, 0.05);
-            padding: 30px;
-            margin: 30px 0;
-            border: 1px solid var(--blood-red);
-            font-family: monospace;
-            white-space: pre-wrap;
-            line-height: 1.5;
-            color: var(--terminal-gray);
-            animation: typeWriter 2s steps(40);
-            overflow-x: auto;
-        }
-        
-        @keyframes typeWriter {
-            from { width: 0; }
-            to { width: 100%; }
-        }
-        
-        /* Статистика */
-        .stats-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-            margin-top: 40px;
-        }
-        
-        .stat-item {
-            background: rgba(255, 0, 0, 0.05);
-            border: 1px solid var(--blood-red);
-            padding: 30px;
-            text-align: center;
-            transition: all 0.4s;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .stat-item:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px var(--shadow-red);
-        }
-        
-        .stat-number {
-            font-size: 3.5rem;
-            color: var(--blood-red);
-            font-weight: bold;
-            margin-bottom: 10px;
-            display: block;
-            position: relative;
-        }
-        
-        .stat-number::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            top: -200px; left: 50%;
             transform: translateX(-50%);
-            width: 50px;
-            height: 3px;
-            background: var(--blood-red);
+            animation: float 10s infinite alternate;
         }
-        
-        .stat-label {
-            font-size: 1.2rem;
-            color: var(--pure-white);
+
+        @keyframes float { 
+            from { transform: translateX(-50%) translateY(0) scale(1); }
+            to { transform: translateX(-50%) translateY(50px) scale(1.2); }
         }
-        
-        /* Контакты */
-        .contacts {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 30px;
-            margin-top: 40px;
-        }
-        
-        .contact-item {
+
+        /* --- SUPREME INTRO --- */
+        #intro {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: #000;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 30px;
-            background: rgba(255, 0, 0, 0.05);
-            border: 1px solid var(--blood-red);
-            width: 200px;
-            transition: all 0.4s;
-            cursor: pointer;
-            text-decoration: none;
+            justify-content: center;
+            transition: all 1.5s cubic-bezier(0.7, 0, 0.3, 1);
         }
-        
-        .contact-item:hover {
-            transform: translateY(-10px) rotate(5deg);
-            box-shadow: 0 20px 40px var(--shadow-red);
-        }
-        
-        .contact-icon {
-            font-size: 3rem;
-            color: var(--blood-red);
-            margin-bottom: 20px;
-            transition: all 0.3s;
-        }
-        
-        .contact-item:hover .contact-icon {
-            transform: scale(1.2);
-        }
-        
-        .contact-text {
-            color: var(--pure-white);
-            font-size: 1rem;
-            text-align: center;
-        }
-        
-        /* Футер */
-        .footer {
-            text-align: center;
-            padding: 60px 20px;
-            margin-top: 80px;
-            border-top: 2px solid var(--blood-red);
-            position: relative;
-        }
-        
-        .footer::before {
-            content: '';
+
+        .intro-light {
             position: absolute;
-            top: -2px;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, var(--blood-red), transparent);
-            opacity: 0.3;
+            width: 2px; height: 0;
+            background: var(--accent);
+            box-shadow: 0 0 50px var(--accent);
+            animation: beam 2s forwards ease-in-out;
         }
-        
-        .footer-text {
-            color: var(--terminal-gray);
-            font-size: 1rem;
-            max-width: 800px;
-            margin: 0 auto;
-            line-height: 1.6;
+
+        @keyframes beam { 
+            0% { height: 0; opacity: 1; }
+            50% { height: 100vh; opacity: 1; }
+            100% { height: 100vh; opacity: 0; }
         }
-        
-        .status-line {
-            color: var(--blood-red);
-            font-weight: bold;
-            margin-top: 20px;
-            font-size: 1.2rem;
-            animation: statusPulse 2s infinite;
+
+        .intro-logo {
+            font-family: 'Cinzel';
+            font-size: 3rem;
+            letter-spacing: 15px;
+            opacity: 0;
+            filter: blur(20px);
+            animation: logoReveal 2.5s 1s forwards cubic-bezier(0.2, 1, 0.2, 1);
         }
-        
-        @keyframes statusPulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+
+        @keyframes logoReveal {
+            to { opacity: 1; filter: blur(0); letter-spacing: 8px; }
         }
-        
-        /* Адаптивность */
-        @media (max-width: 768px) {
-            .main-title {
-                font-size: 2.5rem;
-                letter-spacing: 3px;
-            }
-            
-            .projects-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .nav-btn {
-                padding: 12px 20px;
-                font-size: 0.9rem;
-            }
-            
-            .section {
-                padding: 30px 20px;
-            }
+
+        /* --- UI ELEMENTS --- */
+        header {
+            padding: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
         }
-        
-        @media (max-width: 480px) {
-            .main-title {
-                font-size: 2rem;
-            }
-            
-            .killnet-loader {
-                width: 150px;
-                height: 150px;
-            }
-            
-            .loader-k {
-                font-size: 3rem;
-            }
-            
-            .contacts {
-                gap: 15px;
-            }
-            
-            .contact-item {
-                width: 150px;
-                padding: 20px;
-            }
+
+        header h1 { font-family: 'Cinzel'; font-size: 1rem; letter-spacing: 5px; color: var(--accent); text-shadow: 0 0 15px var(--accent-glow); }
+
+        .view-container { flex: 1; position: relative; overflow: hidden; }
+
+        .view {
+            position: absolute; inset: 0;
+            padding: 30px;
+            display: flex; flex-direction: column;
+            opacity: 0; transform: translateY(30px) scale(0.98);
+            pointer-events: none;
+            transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
         }
+
+        .view.active { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+
+        /* --- ПОДКЛЮЧЕНИЕ --- */
+        .power-shell {
+            margin: auto;
+            position: relative;
+            width: 260px; height: 260px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .halo {
+            position: absolute;
+            inset: 0;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            animation: rotate 20s linear infinite;
+        }
+
+        .halo::before {
+            content: ''; position: absolute; top: -5px; left: 50%;
+            width: 10px; height: 10px; background: var(--accent);
+            border-radius: 50%; box-shadow: 0 0 15px var(--accent);
+        }
+
+        @keyframes rotate { to { transform: rotate(360deg); } }
+
+        .btn-main {
+            width: 180px; height: 180px;
+            border-radius: 50%;
+            border: 2px solid var(--accent);
+            background: var(--glass);
+            cursor: pointer;
+            position: relative;
+            z-index: 5;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+
+        .btn-main:active { transform: scale(0.92); box-shadow: 0 0 40px var(--accent-glow); }
+
+        .btn-main.connected {
+            background: var(--accent);
+            box-shadow: 0 0 80px var(--accent-glow);
+        }
+
+        .btn-main svg { width: 50px; height: 50px; transition: 0.5s; }
+        .btn-main svg path { fill: var(--accent); }
+        .btn-main.connected svg path { fill: var(--bg); }
+
+        .btn-main span {
+            font-family: 'Cinzel'; font-size: 0.7rem; font-weight: bold;
+            margin-top: 15px; color: var(--accent); letter-spacing: 2px;
+        }
+        .btn-main.connected span { color: var(--bg); }
+
+        /* --- СПИСОК СЕРВЕРОВ --- */
+        .server-list {
+            flex: 1; overflow-y: auto; padding-right: 10px;
+            mask-image: linear-gradient(to bottom, transparent, black 5%, black 95%, transparent);
+        }
+
+        .server-list::-webkit-scrollbar { width: 0; }
+
+        .node-card {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            padding: 20px; border-radius: 20px;
+            margin-bottom: 15px;
+            display: flex; align-items: center;
+            transition: 0.4s; cursor: pointer;
+        }
+
+        .node-card:hover { border-color: var(--accent); transform: translateX(5px); background: rgba(212, 175, 55, 0.05); }
+        .node-card.selected { border-color: var(--white); background: rgba(255,255,255,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+
+        .node-flag {
+            width: 45px; height: 45px; border-radius: 12px;
+            background: #111; margin-right: 15px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; border: 1px solid var(--border);
+        }
+
+        .node-info { flex: 1; overflow: hidden; }
+        .node-info h4 { font-size: 0.95rem; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .node-info p { font-size: 0.7rem; color: var(--text-off); }
+
+        .node-ping { font-family: 'Cinzel'; font-size: 0.7rem; color: var(--accent); }
+
+        /* --- НАВИГАЦИЯ --- */
+        nav {
+            padding: 10px 20px 30px;
+            display: flex; justify-content: space-around;
+            backdrop-filter: blur(30px);
+            background: rgba(3, 7, 12, 0.8);
+            border-top: 1px solid var(--border);
+        }
+
+        .nav-item {
+            background: none; border: none;
+            color: var(--text-off);
+            display: flex; flex-direction: column; align-items: center;
+            cursor: pointer; transition: 0.4s;
+        }
+
+        .nav-item.active { color: var(--accent); transform: translateY(-5px); }
+        .nav-item svg { width: 22px; height: 22px; margin-bottom: 6px; }
+        .nav-item svg path { fill: currentColor; }
+        .nav-item span { font-size: 0.6rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* --- TOGGLE ЯЗЫКА --- */
+        .lang-toggle {
+            background: var(--glass); border: 1px solid var(--border);
+            border-radius: 30px; display: flex; padding: 4px;
+        }
+        .lang-btn {
+            border: none; background: none; color: var(--text-off);
+            padding: 8px 16px; border-radius: 20px; font-size: 0.7rem;
+            font-weight: bold; cursor: pointer; transition: 0.3s;
+        }
+        .lang-btn.active { background: var(--accent); color: #000; }
+
+        /* --- TOAST --- */
+        #toast {
+            position: fixed; top: 100px; left: 50%; transform: translateX(-50%) translateY(-20px);
+            background: var(--white); color: #000;
+            padding: 12px 25px; border-radius: 40px;
+            font-weight: bold; font-size: 0.8rem; letter-spacing: 1px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            opacity: 0; transition: 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            z-index: 1000; pointer-events: none;
+        }
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <!-- Анимированный фон -->
-    <div class="matrix-bg"></div>
-    <div class="particles" id="particles"></div>
-    
-    <!-- Лоадер при входе -->
-    <div class="loader-overlay" id="loader">
-        <div class="killnet-loader">
-            <div class="loader-circle"></div>
-            <div class="loader-circle"></div>
-            <div class="loader-circle"></div>
-            <div class="loader-k">K</div>
+
+    <div id="canvas-bg"><div class="bg-glow"></div></div>
+
+    <div id="intro">
+        <div class="intro-light"></div>
+        <div class="intro-logo">ARCHANGEL</div>
+    </div>
+
+    <header>
+        <h1 id="ui-title">ARCHANGEL</h1>
+        <div class="lang-toggle">
+            <button class="lang-btn active" onclick="setLanguage('ru')">RU</button>
+            <button class="lang-btn" onclick="setLanguage('en')">EN</button>
         </div>
-        <div class="loader-text">
-            INITIALIZING KILLNET PROTOCOLS...
+    </header>
+
+    <div class="view-container">
+        <div class="view active" id="v-dash">
+            <div class="power-shell">
+                <div class="halo"></div>
+                <div class="halo" style="animation-duration: 15s; direction: reverse; opacity: 0.5;"></div>
+                <button class="btn-main" id="mainBtn">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+                    <span id="btn-text">CONNECT</span>
+                </button>
+            </div>
+            <div style="text-align: center; margin-bottom: 40px;">
+                <p id="status-text" style="color: var(--text-off); font-size: 0.8rem; letter-spacing: 2px;">DISCONNECTED</p>
+                <p id="active-node-name" style="font-family: 'Cinzel'; margin-top: 10px; font-size: 1.1rem;">---</p>
+            </div>
         </div>
-        <div class="loader-progress">
-            <div class="loader-bar"></div>
+
+        <div class="view" id="v-nodes">
+            <div class="server-list" id="nodes-container"></div>
+        </div>
+
+        <div class="view" id="v-settings">
+            <div style="background: var(--glass); border-radius: 25px; padding: 25px; border: 1px solid var(--border);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 25px;">
+                    <span id="label-proto" style="color: var(--text-off);">Protocol</span>
+                    <span style="color: var(--accent);">Arch-UDP (v3)</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 25px;">
+                    <span id="label-enc" style="color: var(--text-off);">Encryption</span>
+                    <span style="color: var(--accent);">AES-512-GCM</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span id="label-ver" style="color: var(--text-off);">Version</span>
+                    <span style="color: var(--accent);">2.0.0-Gold</span>
+                </div>
+            </div>
+
+            <a href="https://t.me/EliteArchangel" target="_blank" style="text-decoration: none; margin-top: auto;">
+                <div style="background: linear-gradient(135deg, #D4AF37, #B8860B); padding: 20px; border-radius: 20px; text-align: center; color: #000;">
+                    <p style="font-size: 0.6rem; font-weight: bold; opacity: 0.8;" id="label-creator">CREATOR</p>
+                    <p style="font-family: 'Cinzel'; font-weight: bold; font-size: 1.1rem;">@EliteArchangel</p>
+                </div>
+            </a>
         </div>
     </div>
-    
-    <!-- Основной контент -->
-    <div class="container">
-        <header class="header">
-            <h1 class="main-title">@EliteArchangel</h1>
-            <p class="subtitle">
-                KILLNET Operative | Ghost in the System | 3 Years Untraced
-                <br>
-                <span style="color: var(--blood-red);">SPECIALIZATION:</span> Cyber Warfare, Penetration Testing, Advanced Persistent Threats
-            </p>
-        </header>
-        
-        <!-- Навигация -->
-        <div class="nav-container">
-            <button class="nav-btn active" data-target="about">Профиль</button>
-            <button class="nav-btn" data-target="projects">Операции</button>
-            <button class="nav-btn" data-target="hacks">Взломы & Схемы</button>
-            <button class="nav-btn" data-target="stats">Статистика</button>
-            <button class="nav-btn" data-target="contact">Контакты</button>
-        </div>
-        
-        <!-- Секция "Профиль" -->
-        <section id="about" class="section active">
-            <h2 class="section-title">Профиль Оперативника</h2>
-            <p style="color: var(--terminal-gray); line-height: 1.8; margin-bottom: 25px;">
-                <span style="color: var(--blood-red); font-weight: bold;">>>_ WHOIS ELITEARCHANGEL</span>
-                <br><br>
-                Кодовое имя: Archangel. Статус: Призрак. В сетях с 2020 года. Ни одного следа. Ни одной утечки.
-                <br><br>
-                Частично связанный оперативник группировки KILLNET. Специализация: проникновение в защищенные системы, 
-                эксплуатация zero-day уязвимостей, социальная инженерия высшего уровня.
-                <br><br>
-                <span style="color: var(--pure-white);">
-                "Я Архангел, и я с детства не выхожу в сети, а только проникаю.
-                  Я ещё ни разу не был замечен. Я занимался коддингом на Python, и нашёл
-                  кучу лазеек :D (Если вы скрыли номер, не значит что вы анонимны)"
-                </span>
-            </p>
-            
-            <div style="margin-top: 40px;">
-                <h3 style="color: var(--pure-white); margin-bottom: 20px; font-size: 1.5rem;">
-                    <i class="fas fa-code" style="color: var(--blood-red); margin-right: 10px;"></i>
-                    Арсенал Языков
-                </h3>
-                <div style="display: flex; flex-wrap: wrap; gap: 15px;">
-                    <div style="background: rgba(255,0,0,0.1); padding: 15px 25px; border: 1px solid var(--blood-red);">
-                        Python<span style="color: var(--blood-red); margin-left: 10px;">●</span>
-                    </div>
-                    <div style="background: rgba(255,0,0,0.1); padding: 15px 25px; border: 1px solid var(--blood-red);">
-                        Java<span style="color: var(--blood-red); margin-left: 10px;">●</span>
-                    </div>
-                    <div style="background: rgba(255,0,0,0.1); padding: 15px 25px; border: 1px solid var(--blood-red);">
-                        C++<span style="color: var(--blood-red); margin-left: 10px;">●</span>
-                    </div>
-                    <div style="background: rgba(255,0,0,0.1); padding: 15px 25px; border: 1px solid var(--blood-red);">
-                        C#<span style="color: var(--blood-red); margin-left: 10px;">●</span>
-                    </div>
-                    <div style="background: rgba(255,0,0,0.1); padding: 15px 25px; border: 1px solid var(--blood-red);">
-                        Assembly<span style="color: var(--blood-red); margin-left: 10px;">●</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-        
-        <!-- Секция "Операции" -->
-        <section id="projects" class="section">
-            <h2 class="section-title">Известные Операции</h2>
-            <p style="color: var(--terminal-gray); margin-bottom: 30px;">
-                Зафиксированные миссии под прикрытием. Все цели достигнуты. Все следы стерты.
-            </p>
-            
-            <div class="projects-grid">
-                <div class="project-card" data-modal="operation-red-winter">
-                    <div class="project-icon">
-                        <i class="fas fa-snowflake"></i>
-                    </div>
-                    <h3 class="project-title">Operation: Red Winter</h3>
-                    <p class="project-desc">
-                        DDoS - Атака по фишинговому боту, а также деанонимизация владельца.
-                    </p>
-                </div>
-                
-                <div class="project-card" data-modal="operation-silent-ghost">
-                    <div class="project-icon">
-                        <i class="fas fa-ghost"></i>
-                    </div>
-                    <h3 class="project-title">Operation: Silent Ghost</h3>
-                    <p class="project-desc">
-                        Полное проникновение в системы с помощью BackDoor к "Мамкиным Доксерам", Которые думают что крутые).
-                    </p>
-                </div>
-                
-                <div class="project-card" data-modal="operation-phantom">
-                    <div class="project-icon">
-                        <i class="fas fa-user-secret"></i>
-                    </div>
-                    <h3 class="project-title">Operation: Phantom Protocol</h3>
-                    <p class="project-desc">
-                        Полноценная атака с помощью Telegram по группе GAZ, Которая в открытую заявляла об атаке на Безликих
-                      это была главная ошибка.
-                    </p>
-                </div>
-            </div>
-        </section>
-        
-        <!-- Секция "Взломы и схемы" -->
-        <section id="hacks" class="section">
-            <h2 class="section-title">Взломы & Схемы Атак</h2>
-            <p style="color: var(--terminal-gray); margin-bottom: 30px;">
-                Технические детали успешных проникновений. Методы, уязвимости, векторы атак.
-            </p>
-            
-            <div class="projects-grid">
-                <div class="project-card" data-modal="hack-email">
-                    <div class="project-icon">
-                        <i class="fas fa-envelope"></i>
-                    </div>
-                    <h3 class="project-title">Взлом Корпоративной Почты</h3>
-                    <p class="project-desc">
-                        Фишинг высшего уровня + эксплуатация уязвимостей Exchange Server.
-                        93% успешных компрометаций.
-                    </p>
-                    <div style="text-align: center; margin-top: 20px;">
-                        <button class="nav-btn" style="padding: 10px 20px; font-size: 0.9rem;" onclick="showSchema('email')">
-                            Показать схему
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="project-card" data-modal="hack-bank">
-                    <div class="project-icon">
-                        <i class="fas fa-university"></i>
-                    </div>
-                    <h3 class="project-title">Обход банковской 2FA</h3>
-                    <p class="project-desc">
-                        Социальная инженерия + SIM-swapping атака.
-                        Полный доступ к 73 корпоративным счетам.
-                    </p>
-                    <div style="text-align: center; margin-top: 20px;">
-                        <button class="nav-btn" style="padding: 10px 20px; font-size: 0.9rem;" onclick="showSchema('bank')">
-                            Показать схему
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="project-card" data-modal="hack-vpn">
-                    <div class="project-icon">
-                        <i class="fas fa-network-wired"></i>
-                    </div>
-                    <h3 class="project-title">Проникновение через VPN</h3>
-                    <p class="project-desc">
-                        Эксплуатация CVE-2021-22893 + credential stuffing.
-                        Доступ к внутренней сети Fortune 500 компании.
-                    </p>
-                    <div style="text-align: center; margin-top: 20px;">
-                        <button class="nav-btn" style="padding: 10px 20px; font-size: 0.9rem;" onclick="showSchema('vpn')">
-                            Показать схему
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
-        
-        <!-- Секция "Статистика" -->
-        <section id="stats" class="section">
-            <h2 class="section-title">Статистика за 3 года</h2>
-            <p style="color: var(--terminal-gray); margin-bottom: 40px;">
-                Цифры не лгут. Результаты говорят сами за себя.
-            </p>
-            
-            <div class="stats-container">
-                <div class="stat-item">
-                    <span class="stat-number">1095</span>
-                    <span class="stat-label">Дней в сетях</span>
-                </div>
-                
-                <div class="stat-item">
-                    <span class="stat-number">0</span>
-                    <span class="stat-label">Обнаружений</span>
-                </div>
-                
-                <div class="stat-item">
-                    <span class="stat-number">27</span>
-                    <span class="stat-label">Успешные операции</span>
-                </div>
-                
-                <div class="stat-item">
-                    <span class="stat-number">11</span>
-                    <span class="stat-label">Операций KILLNET</span>
-                </div>
-            </div>
-            
-            <div style="margin-top: 50px; text-align: center;">
-                <h3 style="color: var(--pure-white); margin-bottom: 20px; font-size: 1.5rem;">
-                    СРЕДНЕЕ ВРЕМЯ ДО ПРОНИКНОВЕНИЯ
-                </h3>
-                <div style="background: rgba(255,0,0,0.1); padding: 30px; border: 1px solid var(--blood-red);">
-                    <div style="font-size: 3rem; color: var(--blood-red); font-weight: bold;">
-                        4.2 <span style="font-size: 1.5rem; color: var(--terminal-gray);">часа</span>
-                    </div>
-                    <div style="color: var(--terminal-gray); margin-top: 10px;">
-                        от обнаружения уязвимости до полного контроля
-                    </div>
-                </div>
-            </div>
-        </section>
-        
-        <!-- Секция "Контакты" -->
-        <section id="contact" class="section">
-            <h2 class="section-title">Контакты & Протоколы</h2>
-            <p style="color: var(--terminal-gray); margin-bottom: 40px; text-align: center;">
-                Все каналы зашифрованы. Все сообщения самоуничтожаются. Все встречи только через посредников.
-            </p>
-            
-            <div class="contacts">
-                <a href="https://t.me/@EliteArchangel" target="_blank" class="contact-item">
-                    <div class="contact-icon">
-                        <i class="fab fa-telegram"></i>
-                    </div>
-                    <span class="contact-text">Открыть Telegram<br>@EliteArchangel</span>
-                </a>
-                
-                <div class="contact-item">
-                    <div class="contact-icon">
-                        <i class="fas fa-key"></i>
-                    </div>
-                    <span class="contact-text">PGP ключ<br>0x8F3A9B47CE21D5A1</span>
-                </div>
-                
-                <div class="contact-item">
-                    <div class="contact-icon">
-                        <i class="fas fa-envelope"></i>
-                    </div>
-                    <span class="contact-text">Шифрованная почта<br>archangel@protonmail.com</span>
-                </div>
-                
-                <div class="contact-item">
-                    <div class="contact-icon">
-                        <i class="fas fa-comment-slash"></i>
-                    </div>
-                    <span class="contact-text">Burner телефоны<br>Смена каждые 72ч</span>
-                </div>
-            </div>
-            
-            <div style="text-align: center; margin-top: 50px;">
-                <div style="background: rgba(255,0,0,0.1); padding: 20px; border: 1px solid var(--blood-red); display: inline-block;">
-                    <div style="color: var(--blood-red); font-weight: bold; font-size: 1.2rem;">
-                        ТЕКУЩИЙ СТАТУС: АКТИВЕН И НЕОБНАРУЖЕН
-                    </div>
-                    <div style="color: var(--terminal-gray); margin-top: 10px;">
-                        Последний подтвержденный вход: 03:47:19 UTC
-                    </div>
-                </div>
-            </div>
-        </section>
-        
-        <!-- Футер -->
-        <footer class="footer">
-            <p class="footer-text">
-                © 2025 Shadow Network | @EliteArchangel Portfolio
-                <br>
-                Этот сайт является частью цифровой легенды. Все совпадения случайны.
-                Все данные являются художественным вымыслом. Все технологии описаны в ознакомительных целях.
-            </p>
-            <div class="status-line">
-                SYSTEM STATUS: SECURE | TRACKING: DISABLED | GHOST MODE: ACTIVE
-            </div>
-        </footer>
-    </div>
-    
-    <!-- Модальное окно для схем -->
-    <div class="modal-overlay" id="schemaModal">
-        <div class="modal">
-            <button class="modal-close" id="closeModal">&times;</button>
-            <h2 class="modal-title" id="modalTitle">Схема Взлома</h2>
-            <div class="modal-schema" id="modalSchema">
-                // Схема загрузки...
-            </div>
-            <div style="color: var(--terminal-gray); margin-top: 20px;">
-                <strong style="color: var(--pure-white);">Примечание:</strong> Эта схема является упрощенной версией реальной атаки.
-                Некоторые детали намеренно опущены по соображениям безопасности.
-            </div>
-        </div>
-    </div>
+
+    <nav>
+        <button class="nav-item active" onclick="switchTab('dash', this)">
+            <svg viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
+            <span id="nav-dash">Status</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('nodes', this)">
+            <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            <span id="nav-nodes">Nodes</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('settings', this)">
+            <svg viewBox="0 0 24 24"><path d="M12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5zm7.14-2.56c.04-.3.06-.61.06-.94s-.02-.64-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.3-.06.61-.06.94s.02.64.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.03-1.58z"/></svg>
+            <span id="nav-setup">Setup</span>
+        </button>
+    </nav>
+
+    <div id="toast">PROTECTION ACTIVE</div>
 
     <script>
-        // Генерация частиц для фона
-        function createParticles() {
-            const particlesContainer = document.getElementById('particles');
-            const particleCount = 50;
-            
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.classList.add('particle');
-                
-                // Случайные позиции и размеры
-                particle.style.left = `${Math.random() * 100}%`;
-                particle.style.width = `${Math.random() * 3 + 1}px`;
-                particle.style.height = particle.style.width;
-                particle.style.animationDelay = `${Math.random() * 15}s`;
-                particle.style.animationDuration = `${Math.random() * 10 + 10}s`;
-                
-                particlesContainer.appendChild(particle);
-            }
-        }
-        
-        // Управление лоадером
-        window.addEventListener('load', function() {
-            createParticles();
-            
-            setTimeout(() => {
-                const loader = document.getElementById('loader');
-                loader.style.opacity = '0';
-                
-                setTimeout(() => {
-                    loader.style.display = 'none';
-                }, 1000);
-            }, 3000);
-        });
-        
-        // Навигация между секциями
-        document.querySelectorAll('.nav-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                // Удаляем активный класс у всех кнопок
-                document.querySelectorAll('.nav-btn').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                
-                // Добавляем активный класс нажатой кнопке
-                this.classList.add('active');
-                
-                // Скрываем все секции
-                document.querySelectorAll('.section').forEach(section => {
-                    section.classList.remove('active');
-                });
-                
-                // Показываем выбранную секцию
-                const targetId = this.getAttribute('data-target');
-                document.getElementById(targetId).classList.add('active');
-            });
-        });
-        
-        // Карточки проектов
-        document.querySelectorAll('.project-card').forEach(card => {
-            card.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-15px) rotateX(5deg)';
-            });
-            
-            card.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0) rotateX(0)';
-            });
-        });
-        
-        // Модальное окно со схемами
-        const schemaModal = document.getElementById('schemaModal');
-        const closeModal = document.getElementById('closeModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalSchema = document.getElementById('modalSchema');
-        
-        // Схемы взломов
-        const schemas = {
-            email: {
-                title: "Схема взлома корпоративной почты",
-                content: `
-┌─────────────────────────────────────────────────────┐
-│              PHASE 1: RECONNAISSANCE                │
-├─────────────────────────────────────────────────────┤
-│ • WHOIS lookup для определения инфраструктуры       │
-│ • Поиск сотрудников в LinkedIn, Facebook            │
-│ • Анализ корпоративных email-форматов               │
-│ • Сбор данных об используемом ПО                    │
-└─────────────────────────────────────────────────────┘
+        const proxyData = [
+            { c: "Netherlands Noble", ip: "45.137.206.17:8888", ping: 72, icon: "🏰" },
+            { c: "Ukraine Sanctuary", ip: "5.58.25.124:8080", ping: 82, icon: "🔱" },
+            { c: "Japan Serenity", ip: "160.86.242.23:8080", ping: 252, icon: "🌸" },
+            { c: "United States Freedom", ip: "38.156.236.158:999", ping: 145, icon: "🦅" },
+            { c: "Singapore Grace", ip: "8.219.97.248:80", ping: 161, icon: "🦁" },
+            { c: "Egypt Ancient", ip: "154.236.177.105:1976", ping: 88, icon: "🏺" },
+            { c: "Thailand Eden", ip: "203.144.144.146:8080", ping: 179, icon: "🌿" }
+        ];
 
-┌─────────────────────────────────────────────────────┐
-│           PHASE 2: PHISHING CAMPAIGN                │
-├─────────────────────────────────────────────────────┤
-│ • Создание поддельного домена (пример:             │
-│   microsoft-support.com вместо microsoft.com)       │
-│ • Разработка convincing spear-phishing email       │
-│ • Использование актуальных тем (обновление ПО,     │
-│   корпоративные новости)                            │
-│ • Внедрение tracking pixels для мониторинга        │
-│   открытий писем                                    │
-└─────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────┐
-│       PHASE 3: EXPLOITATION & ACCESS                │
-├─────────────────────────────────────────────────────┤
-│ • Переход по ссылке → landing page с               │
-│   fake Office 365 login                            │
-│ • Credential harvesting через JavaScript           │
-│ • Если 2FA: использование evilginx2 для MITM       │
-│ • Автоматическая подстановка credentials в         │
-│   реальный Outlook Web App                         │
-└─────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────┐
-│            PHASE 4: PERSISTENCE                     │
-├─────────────────────────────────────────────────────┤
-│ • Создание правил пересылки писем                  │
-│ • Установка клиентских сертификатов                │
-│ • Добавление backdoor accounts                     │
-│ • Настройка OAuth приложений для долгосрочного     │
-│   доступа                                           │
-└─────────────────────────────────────────────────────┘
-
-УСПЕШНОСТЬ: 93%
-ВРЕМЯ: 2-4 часа на подготовку, 5-15 минут на выполнение
-ОБНАРУЖЕНИЕ: Среднее время обнаружения - 14 дней
-                `
+        const dict = {
+            ru: {
+                title: "ARCHANGEL", connect: "ПОДКЛЮЧИТЬ", disconnect: "ОТКЛЮЧИТЬ",
+                stat_off: "БЕЗ ЗАЩИТЫ", stat_on: "ПОД ЗАЩИТОЙ",
+                nav_d: "Статус", nav_n: "Узлы", nav_s: "Настройка",
+                l_proto: "Протокол", l_enc: "Шифрование", l_ver: "Версия", l_cre: "СОЗДАТЕЛЬ",
+                node_empty: "Узел не выбран", t_err: "ВЫБЕРИТЕ УЗЕЛ", t_on: "ЩИТ АКТИВИРОВАН", t_off: "ЩИТ ДЕАКТИВИРОВАН"
             },
-            
-            bank: {
-                title: "Схема обхода банковской 2FA",
-                content: `
-┌─────────────────────────────────────────────────────┐
-│               TARGET IDENTIFICATION                 │
-├─────────────────────────────────────────────────────┤
-│ • Выбор сотрудников с доступом к финансовым системам│
-│ • Анализ публичных данных о сотрудниках             │
-│ • Определение используемых мобильных операторов     │
-│ • Исследование банковских процедур авторизации      │
-└─────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────┐
-│           SOCIAL ENGINEERING VECTOR                 │
-├─────────────────────────────────────────────────────┤
-│ • Звонок в службу поддержки оператора от имени     │
-│   сотрудника                                        │
-│ • Использование собранных персональных данных      │
-│   для верификации                                   │
-│ • Запрос замены SIM-карты (SIM-swapping)           │
-│ • Активация новой SIM в контролируемом устройстве  │
-└─────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────┐
-│           BANKING SYSTEM ACCESS                     │
-├─────────────────────────────────────────────────────┤
-│ • Использование известных credentials для входа    │
-│ • Получение 2FA кода на перехваченный номер        │
-│ • Обход геолокационных проверок через VPN          │
-│ • Постепенное увеличение лимитов переводов         │
-└─────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────┐
-│            MONEY MULE NETWORK                       │
-├─────────────────────────────────────────────────────┤
-│ • Предварительная подготовка money mule accounts   │
-│ • Каскадные переводы для скрытия следов            │
-│ • Конвертация в криптовалюты через mixing services │
-│ • Вывод через криптобиржи в различных юрисдикциях  │
-└─────────────────────────────────────────────────────┘
-
-СЛОЖНОСТЬ: ВЫСОКАЯ
-УСПЕШНОСТЬ: 67% (при качественной подготовке)
-ОБНАРУЖЕНИЕ: Среднее время - 3-7 дней
-                `
-            },
-            
-            vpn: {
-                title: "Схема проникновения через VPN",
-                content: `
-┌─────────────────────────────────────────────────────┐
-│          VULNERABILITY ASSESSMENT                   │
-├─────────────────────────────────────────────────────┤
-│ • Сканирование на наличие Pulse Connect Secure      │
-│   (CVE-2021-22893, CVE-2021-22894)                  │
-│ • Проверка версий Fortinet FortiGate               │
-│ • Тестирование на уязвимости Citrix Gateway        │
-│ • Анализ логов на наличие leaked credentials       │
-└─────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────┐
-│          EXPLOITATION PHASE                         │
-├─────────────────────────────────────────────────────┤
-│ • Использование metasploit модулей для RCE         │
-│ • Upload web shell для поддержания доступа         │
-│ • Извлечение зашифрованных credentials из памяти   │
-│ • Дешифровка с помощью extracted keys              │
-└─────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────┐
-│          LATERAL MOVEMENT                          │
-├─────────────────────────────────────────────────────┤
-│ • Использование полученных credentials для         │
-│   аутентификации через VPN                         │
-│ • Enumeration внутренней сети                      │
-│ • Поиск domain controllers, file servers           │
-│ • Сбор информации о доменной структуре             │
-└─────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────┐
-│          PERSISTENCE & EXFILTRATION                │
-├─────────────────────────────────────────────────────┤
-│ • Создание backdoor accounts в AD                  │
-│ • Установка scheduled tasks для поддержания        │
-│   доступа                                           │
-│ • Постепенная exfiltration данных через            │
-│   зашифрованные каналы                             │
-│ • Использование DNS tunneling для обхода           │
-│   мониторинга                                       │
-└─────────────────────────────────────────────────────┘
-
-УСПЕШНОСТЬ: 82% (при наличии уязвимостей)
-ВРЕМЯ: 1-2 часа на сканирование, 15-30 минут на эксплуатацию
-ОБНАРУЖЕНИЕ: Среднее время - 21 день
-                `
+            en: {
+                title: "ARCHANGEL", connect: "CONNECT", disconnect: "DISCONNECT",
+                stat_off: "UNPROTECTED", stat_on: "PROTECTED",
+                nav_d: "Status", nav_n: "Nodes", nav_s: "Setup",
+                l_proto: "Protocol", l_enc: "Encryption", l_ver: "Version", l_cre: "CREATOR",
+                node_empty: "No Node Selected", t_err: "SELECT NODE", t_on: "SHIELD ACTIVE", t_off: "SHIELD OFF"
             }
         };
-        
-        // Функция показа схемы
-        function showSchema(schemaType) {
-            if (schemas[schemaType]) {
-                modalTitle.textContent = schemas[schemaType].title;
-                modalSchema.textContent = schemas[schemaType].content;
-                schemaModal.classList.add('active');
-            }
+
+        let lang = 'ru';
+        let connected = false;
+        let selectedNode = null;
+
+        // Intro Logic
+        window.onload = () => {
+            setTimeout(() => {
+                document.getElementById('intro').style.opacity = '0';
+                setTimeout(() => document.getElementById('intro').remove(), 1500);
+                renderNodes();
+            }, 3000);
+        };
+
+        function setLanguage(l) {
+            lang = l;
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.toggle('active', btn.innerText.toLowerCase() === l));
+            updateUI();
         }
-        
-        // Закрытие модального окна
-        closeModal.addEventListener('click', () => {
-            schemaModal.classList.remove('active');
-        });
-        
-        // Закрытие по клику вне окна
-        schemaModal.addEventListener('click', (e) => {
-            if (e.target === schemaModal) {
-                schemaModal.classList.remove('active');
-            }
-        });
-        
-        // Эффект печатающегося текста для схем
-        function typeWriterEffect(element, text, speed = 50) {
-            let i = 0;
-            element.textContent = '';
-            
-            function type() {
-                if (i < text.length) {
-                    element.textContent += text.charAt(i);
-                    i++;
-                    setTimeout(type, speed);
-                }
-            }
-            
-            type();
+
+        function updateUI() {
+            const d = dict[lang];
+            document.getElementById('ui-title').innerText = d.title;
+            document.getElementById('btn-text').innerText = connected ? d.disconnect : d.connect;
+            document.getElementById('status-text').innerText = connected ? d.stat_on : d.stat_off;
+            document.getElementById('nav-dash').innerText = d.nav_d;
+            document.getElementById('nav-nodes').innerText = d.nav_n;
+            document.getElementById('nav-setup').innerText = d.nav_s;
+            document.getElementById('label-proto').innerText = d.l_proto;
+            document.getElementById('label-enc').innerText = d.l_enc;
+            document.getElementById('label-ver').innerText = d.l_ver;
+            document.getElementById('label-creator').innerText = d.l_cre;
+            if(!selectedNode) document.getElementById('active-node-name').innerText = d.node_empty;
         }
-        
-        // При открытии схемы запускаем эффект печати
-        schemaModal.addEventListener('click', (e) => {
-            if (e.target.classList.contains('nav-btn')) {
-                setTimeout(() => {
-                    typeWriterEffect(modalSchema, modalSchema.textContent, 10);
-                }, 300);
-            }
-        });
-        
-        // Параллакс эффект для частиц при скролле
-        window.addEventListener('scroll', () => {
-            const scrolled = window.pageYOffset;
-            const particles = document.querySelector('.particles');
-            if (particles) {
-                particles.style.transform = `translateY(${scrolled * 0.5}px)`;
-            }
-        });
-        
-        // Анимация при наведении на контакты
-        document.querySelectorAll('.contact-item').forEach(item => {
-            item.addEventListener('mouseenter', function() {
-                const icon = this.querySelector('.contact-icon');
-                icon.style.transform = 'scale(1.3) rotate(10deg)';
+
+        function switchTab(id, el) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('v-' + id).classList.add('active');
+            el.classList.add('active');
+        }
+
+        function renderNodes() {
+            const container = document.getElementById('nodes-container');
+            proxyData.forEach((p, i) => {
+                const card = document.createElement('div');
+                card.className = 'node-card';
+                card.innerHTML = `
+                    <div class="node-flag">${p.icon}</div>
+                    <div class="node-info">
+                        <h4>${p.c}</h4>
+                        <p>${p.ip}</p>
+                    </div>
+                    <div class="node-ping">${p.ping}ms</div>
+                `;
+                card.onclick = () => {
+                    selectedNode = p;
+                    document.querySelectorAll('.node-card').forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    document.getElementById('active-node-name').innerText = p.c;
+                    switchTab('dash', document.querySelector('.nav-item'));
+                };
+                container.appendChild(card);
             });
-            
-            item.addEventListener('mouseleave', function() {
-                const icon = this.querySelector('.contact-icon');
-                icon.style.transform = 'scale(1) rotate(0)';
-            });
-        });
-        
-        // Случайное мерцание статуса
-        setInterval(() => {
-            const statusLine = document.querySelector('.status-line');
-            if (statusLine && Math.random() > 0.7) {
-                statusLine.style.opacity = '0.5';
-                setTimeout(() => {
-                    statusLine.style.opacity = '1';
-                }, 100);
+            updateUI();
+        }
+
+        document.getElementById('mainBtn').onclick = function() {
+            if(!selectedNode) {
+                showToast(dict[lang].t_err);
+                return;
             }
-        }, 3000);
+            connected = !connected;
+            this.classList.toggle('connected', connected);
+            document.getElementById('canvas-bg').style.opacity = connected ? '1' : '0.5';
+            updateUI();
+            showToast(connected ? dict[lang].t_on : dict[lang].t_off);
+        };
+
+        function showToast(m) {
+            const t = document.getElementById('toast');
+            t.innerText = m; t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
     </script>
 </body>
-  </html>
+</html>
