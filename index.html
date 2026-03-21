@@ -237,39 +237,51 @@
     <div id="toast">PROTECTION ACTIVE</div>
 
     <script>
-        // --------------------------------------------------------------
-        // FASTEST PROXY LIST (from PROXY.txt) - only top 5 fastest & unique
-        // --------------------------------------------------------------
+        // ============================================================
+        // ВСЕ ПРОКСИ ИЗ ФАЙЛА PROXY.txt (уникальные, самые быстрые)
+        // ============================================================
         const proxyData = [
             { 
-                c: "Peyk.acharbashi", 
-                url: "https://t.me/proxy?server=peyk.acharbashi.info&port=4515&secret=eee9a4f23b1d768c04a8d7f39120ca5b6e626973636f7474692e79656b74616e65742e636f6d", 
+                c: "Peyk.acharbashi (73ms)", 
+                url: "https://t.me/proxy?server=peyk.acharbashi.info&port=4515&secret=" + encodeURIComponent("eee9a4f23b1d768c04a8d7f39120ca5b6e626973636f7474692e79656b74616e65742e636f6d"), 
                 ping: 73, 
                 icon: "⚡" 
             },
             { 
-                c: "Alo.acharbashi", 
-                url: "https://t.me/proxy?server=alo.acharbashi.info&port=4515&secret=eee9a4f23b1d768c04a8d7f39120ca5b6e626973636f7474692e79656b74616e65742e636f6d", 
+                c: "Alo.acharbashi (76ms)", 
+                url: "https://t.me/proxy?server=alo.acharbashi.info&port=4515&secret=" + encodeURIComponent("eee9a4f23b1d768c04a8d7f39120ca5b6e626973636f7474692e79656b74616e65742e636f6d"), 
                 ping: 76, 
                 icon: "🌐" 
             },
             { 
-                c: "Archangel UK (r1)", 
-                url: "https://t.me/proxy?server=r1.newr1.co.uk&port=85&secret=FgMBAgABAAH8AxOG4kw63Q%3D%3D", 
+                c: "Archangel UK (r1) #1 (78ms)", 
+                url: "https://t.me/proxy?server=r1.newr1.co.uk&port=85&secret=" + encodeURIComponent("FgMBAgABAAH8AxOG4kw63Q=="), 
                 ping: 78, 
                 icon: "🇬🇧" 
             },
             { 
-                c: "Core 107.189", 
-                url: "https://t.me/proxy?server=107.189.5.55&port=443&secret=ee91e862f6641a65ce7a3db03de021b6cf636c6f7564666c6172652e636f6d", 
+                c: "Archangel UK (r1) #2 (78ms)", 
+                url: "https://t.me/proxy?server=r1.newr1.co.uk&port=85&secret=" + encodeURIComponent("FgMBAgABAAH8AxOG4kw63Q"), 
+                ping: 78, 
+                icon: "🔰" 
+            },
+            { 
+                c: "Cloudflare 107.189 (78ms)", 
+                url: "https://t.me/proxy?server=107.189.5.55&port=443&secret=" + encodeURIComponent("ee91e862f6641a65ce7a3db03de021b6cf636c6f7564666c6172652e636f6d"), 
                 ping: 78, 
                 icon: "💠" 
             },
             { 
-                c: "Nerdpol DE", 
-                url: "https://t.me/proxy?server=de.nerdpol.ovh&port=4516&secret=ee85fca33eab6bfe3ccb83a2fed11dd67a64652e6e657264706f6c2e6f7668", 
+                c: "Nerdpol DE (80ms)", 
+                url: "https://t.me/proxy?server=de.nerdpol.ovh&port=4516&secret=" + encodeURIComponent("ee85fca33eab6bfe3ccb83a2fed11dd67a64652e6e657264706f6c2e6f7668"), 
                 ping: 80, 
                 icon: "🛡️" 
+            },
+            { 
+                c: "Careemian (121ms)", 
+                url: "https://t.me/proxy?server=www.careemian.info&port=2083&secret=" + encodeURIComponent("ee1603010200010001fc030386e24c3add68656c702e737465616d706f77657265642e636f6d"), 
+                ping: 121, 
+                icon: "🔗" 
             }
         ];
 
