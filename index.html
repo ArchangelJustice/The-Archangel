@@ -331,13 +331,11 @@
 
     <script>
         const proxyData = [
-            { c: "Netherlands Noble", ip: "45.137.206.17:8888", ping: 72, icon: "🏰" },
-            { c: "Ukraine Sanctuary", ip: "5.58.25.124:8080", ping: 82, icon: "🔱" },
-            { c: "Japan Serenity", ip: "160.86.242.23:8080", ping: 252, icon: "🌸" },
-            { c: "United States Freedom", ip: "38.156.236.158:999", ping: 145, icon: "🦅" },
-            { c: "Singapore Grace", ip: "8.219.97.248:80", ping: 161, icon: "🦁" },
-            { c: "Egypt Ancient", ip: "154.236.177.105:1976", ping: 88, icon: "🏺" },
-            { c: "Thailand Eden", ip: "203.144.144.146:8080", ping: 179, icon: "🌿" }
+            { c: "Archangel Node 1", url: "https://t.me/proxy?server=37.139.42.140&port=443&secret=f5199e949c0f23bc887581218ad8c1e6", ping: 42, icon: "⚡" },
+            { c: "Archangel Node 2", url: "https://t.me/proxy?server=37.139.43.80&port=443&secret=f5199e949c0f23bc887581218ad8c1e6", ping: 38, icon: "🛡️" },
+            { c: "Archangel Node 3", url: "https://t.me/proxy?server=5.188.140.234&port=443&secret=f5199e949c0f23bc887581218ad8c1e6", ping: 55, icon: "⚔️" },
+            { c: "Archangel Node 4", url: "https://t.me/proxy?server=5.188.141.236&port=443&secret=f5199e949c0f23bc887581218ad8c1e6", ping: 47, icon: "✨" },
+            { c: "Archangel Node 5", url: "https://t.me/proxy?server=37.139.42.151&port=443&secret=f5199e949c0f23bc887581218ad8c1e6", ping: 31, icon: "👑" }
         ];
 
         const dict = {
@@ -346,14 +344,14 @@
                 stat_off: "БЕЗ ЗАЩИТЫ", stat_on: "ПОД ЗАЩИТОЙ",
                 nav_d: "Статус", nav_n: "Узлы", nav_s: "Настройка",
                 l_proto: "Протокол", l_enc: "Шифрование", l_ver: "Версия", l_cre: "СОЗДАТЕЛЬ",
-                node_empty: "Узел не выбран", t_err: "ВЫБЕРИТЕ УЗЕЛ", t_on: "ЩИТ АКТИВИРОВАН", t_off: "ЩИТ ДЕАКТИВИРОВАН"
+                node_empty: "Узел не выбран", t_err: "ВЫБЕРИТЕ УЗЕЛ", t_on: "ЗАПРОС ОТПРАВЛЕН", t_off: "ЩИТ ДЕАКТИВИРОВАН"
             },
             en: {
                 title: "ARCHANGEL", connect: "CONNECT", disconnect: "DISCONNECT",
                 stat_off: "UNPROTECTED", stat_on: "PROTECTED",
                 nav_d: "Status", nav_n: "Nodes", nav_s: "Setup",
                 l_proto: "Protocol", l_enc: "Encryption", l_ver: "Version", l_cre: "CREATOR",
-                node_empty: "No Node Selected", t_err: "SELECT NODE", t_on: "SHIELD ACTIVE", t_off: "SHIELD OFF"
+                node_empty: "No Node Selected", t_err: "SELECT NODE", t_on: "REQUEST SENT", t_off: "SHIELD OFF"
             }
         };
 
@@ -407,7 +405,7 @@
                     <div class="node-flag">${p.icon}</div>
                     <div class="node-info">
                         <h4>${p.c}</h4>
-                        <p>${p.ip}</p>
+                        <p>MTProto Proxy</p>
                     </div>
                     <div class="node-ping">${p.ping}ms</div>
                 `;
@@ -428,11 +426,15 @@
                 showToast(dict[lang].t_err);
                 return;
             }
-            connected = !connected;
-            this.classList.toggle('connected', connected);
-            document.getElementById('canvas-bg').style.opacity = connected ? '1' : '0.5';
+            
+            // Логика вызова прокси в Telegram
+            window.open(selectedNode.url, '_blank');
+            
+            connected = true; // Ставим статус "подключено" после вызова
+            this.classList.add('connected');
+            document.getElementById('canvas-bg').style.opacity = '1';
             updateUI();
-            showToast(connected ? dict[lang].t_on : dict[lang].t_off);
+            showToast(dict[lang].t_on);
         };
 
         function showToast(m) {
