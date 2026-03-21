@@ -237,16 +237,40 @@
     <div id="toast">PROTECTION ACTIVE</div>
 
     <script>
+        // --------------------------------------------------------------
+        // FASTEST PROXY LIST (from PROXY.txt) - only top 5 fastest & unique
+        // --------------------------------------------------------------
         const proxyData = [
-            { c: "Archangel Node 1", url: "https://t.me/proxy?server=37.139.42.140&port=443&secret=f5199e949c0f23bc887581218ad8c1e6", ping: 42, icon: "⚡" },
-            { c: "Archangel Node 2", url: "https://t.me/proxy?server=37.139.43.80&port=443&secret=f5199e949c0f23bc887581218ad8c1e6", ping: 38, icon: "🛡️" },
-            { c: "Archangel Node 3", url: "https://t.me/proxy?server=5.188.140.234&port=443&secret=f5199e949c0f23bc887581218ad8c1e6", ping: 55, icon: "⚔️" },
-            { c: "Archangel Node 4", url: "https://t.me/proxy?server=5.188.141.236&port=443&secret=f5199e949c0f23bc887581218ad8c1e6", ping: 47, icon: "✨" },
-            { c: "Archangel Node 5", url: "https://t.me/proxy?server=37.139.42.151&port=443&secret=f5199e949c0f23bc887581218ad8c1e6", ping: 31, icon: "👑" },
-            { c: "Archangel Alpha", url: "https://t.me/proxy?server=5.188.141.236&port=443&secret=f5199e949c0f23bc887581218ad8c1e6", ping: 24, icon: "💎" },
-            { c: "Archangel Beta", url: "https://t.me/proxy?server=5.188.140.234&port=443&secret=f5199e949c0f23bc887581218ad8c1e6", ping: 29, icon: "🚀" },
-            { c: "Archangel Prime", url: "https://t.me/proxy?server=37.139.43.80&port=443&secret=f5199e949c0f23bc887581218ad8c1e6", ping: 18, icon: "🌟" },
-            { c: "Archangel Elite", url: "https://t.me/proxy?server=37.139.42.140&port=443&secret=f5199e949c0f23bc887581218ad8c1e6", ping: 33, icon: "🔱" }
+            { 
+                c: "Peyk.acharbashi", 
+                url: "https://t.me/proxy?server=peyk.acharbashi.info&port=4515&secret=eee9a4f23b1d768c04a8d7f39120ca5b6e626973636f7474692e79656b74616e65742e636f6d", 
+                ping: 73, 
+                icon: "⚡" 
+            },
+            { 
+                c: "Alo.acharbashi", 
+                url: "https://t.me/proxy?server=alo.acharbashi.info&port=4515&secret=eee9a4f23b1d768c04a8d7f39120ca5b6e626973636f7474692e79656b74616e65742e636f6d", 
+                ping: 76, 
+                icon: "🌐" 
+            },
+            { 
+                c: "Archangel UK (r1)", 
+                url: "https://t.me/proxy?server=r1.newr1.co.uk&port=85&secret=FgMBAgABAAH8AxOG4kw63Q%3D%3D", 
+                ping: 78, 
+                icon: "🇬🇧" 
+            },
+            { 
+                c: "Core 107.189", 
+                url: "https://t.me/proxy?server=107.189.5.55&port=443&secret=ee91e862f6641a65ce7a3db03de021b6cf636c6f7564666c6172652e636f6d", 
+                ping: 78, 
+                icon: "💠" 
+            },
+            { 
+                c: "Nerdpol DE", 
+                url: "https://t.me/proxy?server=de.nerdpol.ovh&port=4516&secret=ee85fca33eab6bfe3ccb83a2fed11dd67a64652e6e657264706f6c2e6f7668", 
+                ping: 80, 
+                icon: "🛡️" 
+            }
         ];
 
         let connected = false;
@@ -273,7 +297,14 @@
             proxyData.forEach((p) => {
                 const card = document.createElement('div');
                 card.className = 'node-card';
-                card.innerHTML = `<div class="node-flag">${p.icon}</div><div class="node-info"><h4>${p.c}</h4><p>MTProto Proxy</p></div><div class="node-ping">${p.ping}ms</div>`;
+                card.innerHTML = `
+                    <div class="node-flag">${p.icon}</div>
+                    <div class="node-info">
+                        <h4>${p.c}</h4>
+                        <p>MTProto Proxy</p>
+                    </div>
+                    <div class="node-ping">${p.ping}ms</div>
+                `;
                 card.onclick = () => {
                     selectedNode = p;
                     document.querySelectorAll('.node-card').forEach(c => c.classList.remove('selected'));
