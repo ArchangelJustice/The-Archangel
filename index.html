@@ -29,22 +29,15 @@
             flex-direction: column;
         }
 
-        /* --- ЭФФЕКТЫ ФОНА --- */
         #canvas-bg {
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            filter: blur(80px);
-            opacity: 0.5;
-            transition: opacity 2s;
+            position: fixed; inset: 0; z-index: -1;
+            filter: blur(80px); opacity: 0.5; transition: opacity 2s;
         }
 
         .bg-glow {
-            position: absolute;
-            width: 600px; height: 600px;
+            position: absolute; width: 600px; height: 600px;
             background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
-            top: -200px; left: 50%;
-            transform: translateX(-50%);
+            top: -200px; left: 50%; transform: translateX(-50%);
             animation: float 10s infinite alternate;
         }
 
@@ -53,24 +46,15 @@
             to { transform: translateX(-50%) translateY(50px) scale(1.2); }
         }
 
-        /* --- SUPREME INTRO --- */
         #intro {
-            position: fixed;
-            inset: 0;
-            z-index: 10000;
-            background: #000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            position: fixed; inset: 0; z-index: 10000; background: #000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
             transition: all 1.5s cubic-bezier(0.7, 0, 0.3, 1);
         }
 
         .intro-light {
-            position: absolute;
-            width: 2px; height: 0;
-            background: var(--accent);
-            box-shadow: 0 0 50px var(--accent);
+            position: absolute; width: 2px; height: 0;
+            background: var(--accent); box-shadow: 0 0 50px var(--accent);
             animation: beam 2s forwards ease-in-out;
         }
 
@@ -81,57 +65,39 @@
         }
 
         .intro-logo {
-            font-family: 'Cinzel';
-            font-size: 3rem;
-            letter-spacing: 15px;
-            opacity: 0;
-            filter: blur(20px);
+            font-family: 'Cinzel'; font-size: 3rem; letter-spacing: 15px;
+            opacity: 0; filter: blur(20px);
             animation: logoReveal 2.5s 1s forwards cubic-bezier(0.2, 1, 0.2, 1);
         }
 
-        @keyframes logoReveal {
-            to { opacity: 1; filter: blur(0); letter-spacing: 8px; }
-        }
+        @keyframes logoReveal { to { opacity: 1; filter: blur(0); letter-spacing: 8px; } }
 
-        /* --- UI ELEMENTS --- */
         header {
-            padding: 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border);
+            padding: 25px; display: flex; justify-content: space-between; align-items: center;
+            backdrop-filter: blur(20px); border-bottom: 1px solid var(--border);
         }
 
-        header h1 { font-family: 'Cinzel'; font-size: 1rem; letter-spacing: 5px; color: var(--accent); text-shadow: 0 0 15px var(--accent-glow); }
+        header h1 { font-family: 'Cinzel'; font-size: 1rem; letter-spacing: 5px; color: var(--accent); }
 
         .view-container { flex: 1; position: relative; overflow: hidden; }
 
         .view {
-            position: absolute; inset: 0;
-            padding: 30px;
+            position: absolute; inset: 0; padding: 30px;
             display: flex; flex-direction: column;
             opacity: 0; transform: translateY(30px) scale(0.98);
-            pointer-events: none;
-            transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none; transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .view.active { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
 
-        /* --- ПОДКЛЮЧЕНИЕ --- */
         .power-shell {
-            margin: auto;
-            position: relative;
-            width: 260px; height: 260px;
+            margin: auto; position: relative; width: 260px; height: 260px;
             display: flex; align-items: center; justify-content: center;
         }
 
         .halo {
-            position: absolute;
-            inset: 0;
-            border: 1px solid var(--border);
-            border-radius: 50%;
-            animation: rotate 20s linear infinite;
+            position: absolute; inset: 0; border: 1px solid var(--border);
+            border-radius: 50%; animation: rotate 20s linear infinite;
         }
 
         .halo::before {
@@ -143,109 +109,63 @@
         @keyframes rotate { to { transform: rotate(360deg); } }
 
         .btn-main {
-            width: 180px; height: 180px;
-            border-radius: 50%;
-            border: 2px solid var(--accent);
-            background: var(--glass);
-            cursor: pointer;
-            position: relative;
-            z-index: 5;
+            width: 180px; height: 180px; border-radius: 50%;
+            border: 2px solid var(--accent); background: var(--glass);
+            cursor: pointer; position: relative; z-index: 5;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
 
-        .btn-main:active { transform: scale(0.92); box-shadow: 0 0 40px var(--accent-glow); }
-
-        .btn-main.connected {
-            background: var(--accent);
-            box-shadow: 0 0 80px var(--accent-glow);
-        }
-
-        .btn-main svg { width: 50px; height: 50px; transition: 0.5s; }
+        .btn-main.connected { background: var(--accent); box-shadow: 0 0 80px var(--accent-glow); }
+        .btn-main svg { width: 50px; height: 50px; }
         .btn-main svg path { fill: var(--accent); }
         .btn-main.connected svg path { fill: var(--bg); }
-
-        .btn-main span {
-            font-family: 'Cinzel'; font-size: 0.7rem; font-weight: bold;
-            margin-top: 15px; color: var(--accent); letter-spacing: 2px;
-        }
+        .btn-main span { font-family: 'Cinzel'; font-size: 0.7rem; margin-top: 15px; color: var(--accent); letter-spacing: 2px; }
         .btn-main.connected span { color: var(--bg); }
 
-        /* --- СПИСОК СЕРВЕРОВ --- */
-        .server-list {
-            flex: 1; overflow-y: auto; padding-right: 10px;
-            mask-image: linear-gradient(to bottom, transparent, black 5%, black 95%, transparent);
-        }
-
+        .server-list { flex: 1; overflow-y: auto; }
         .server-list::-webkit-scrollbar { width: 0; }
 
         .node-card {
-            background: var(--glass);
-            border: 1px solid var(--border);
-            padding: 20px; border-radius: 20px;
-            margin-bottom: 15px;
-            display: flex; align-items: center;
-            transition: 0.4s; cursor: pointer;
+            background: var(--glass); border: 1px solid var(--border);
+            padding: 20px; border-radius: 20px; margin-bottom: 15px;
+            display: flex; align-items: center; cursor: pointer; transition: 0.4s;
         }
 
-        .node-card:hover { border-color: var(--accent); transform: translateX(5px); background: rgba(212, 175, 55, 0.05); }
-        .node-card.selected { border-color: var(--white); background: rgba(255,255,255,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .node-card:hover { border-color: var(--accent); background: rgba(212, 175, 55, 0.05); }
+        .node-card.selected { border-color: var(--white); background: rgba(255,255,255,0.05); }
 
         .node-flag {
-            width: 45px; height: 45px; border-radius: 12px;
-            background: #111; margin-right: 15px;
-            display: flex; align-items: center; justify-content: center;
+            width: 45px; height: 45px; border-radius: 12px; background: #111;
+            margin-right: 15px; display: flex; align-items: center; justify-content: center;
             font-size: 1.2rem; border: 1px solid var(--border);
         }
 
-        .node-info { flex: 1; overflow: hidden; }
-        .node-info h4 { font-size: 0.95rem; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .node-info { flex: 1; }
+        .node-info h4 { font-size: 0.95rem; margin-bottom: 4px; }
         .node-info p { font-size: 0.7rem; color: var(--text-off); }
-
         .node-ping { font-family: 'Cinzel'; font-size: 0.7rem; color: var(--accent); }
 
-        /* --- НАВИГАЦИЯ --- */
         nav {
-            padding: 10px 20px 30px;
-            display: flex; justify-content: space-around;
-            backdrop-filter: blur(30px);
-            background: rgba(3, 7, 12, 0.8);
-            border-top: 1px solid var(--border);
+            padding: 10px 20px 30px; display: flex; justify-content: space-around;
+            backdrop-filter: blur(30px); background: rgba(3, 7, 12, 0.8); border-top: 1px solid var(--border);
         }
 
         .nav-item {
-            background: none; border: none;
-            color: var(--text-off);
-            display: flex; flex-direction: column; align-items: center;
-            cursor: pointer; transition: 0.4s;
+            background: none; border: none; color: var(--text-off);
+            display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: 0.4s;
         }
 
         .nav-item.active { color: var(--accent); transform: translateY(-5px); }
         .nav-item svg { width: 22px; height: 22px; margin-bottom: 6px; }
         .nav-item svg path { fill: currentColor; }
-        .nav-item span { font-size: 0.6rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        .nav-item span { font-size: 0.6rem; font-weight: bold; letter-spacing: 1px; }
 
-        /* --- TOGGLE ЯЗЫКА --- */
-        .lang-toggle {
-            background: var(--glass); border: 1px solid var(--border);
-            border-radius: 30px; display: flex; padding: 4px;
-        }
-        .lang-btn {
-            border: none; background: none; color: var(--text-off);
-            padding: 8px 16px; border-radius: 20px; font-size: 0.7rem;
-            font-weight: bold; cursor: pointer; transition: 0.3s;
-        }
-        .lang-btn.active { background: var(--accent); color: #000; }
-
-        /* --- TOAST --- */
         #toast {
             position: fixed; top: 100px; left: 50%; transform: translateX(-50%) translateY(-20px);
-            background: var(--white); color: #000;
-            padding: 12px 25px; border-radius: 40px;
-            font-weight: bold; font-size: 0.8rem; letter-spacing: 1px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            opacity: 0; transition: 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-            z-index: 1000; pointer-events: none;
+            background: var(--white); color: #000; padding: 12px 25px; border-radius: 40px;
+            font-weight: bold; font-size: 0.8rem; opacity: 0; z-index: 1000; pointer-events: none;
+            transition: 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
         }
         #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     </style>
@@ -260,11 +180,8 @@
     </div>
 
     <header>
-        <h1 id="ui-title">ARCHANGEL</h1>
-        <div class="lang-toggle">
-            <button class="lang-btn active" onclick="setLanguage('ru')">RU</button>
-            <button class="lang-btn" onclick="setLanguage('en')">EN</button>
-        </div>
+        <h1>ARCHANGEL</h1>
+        <div style="font-size: 0.7rem; color: var(--accent); letter-spacing: 2px;">GOLD EDITION</div>
     </header>
 
     <div class="view-container">
@@ -279,7 +196,7 @@
             </div>
             <div style="text-align: center; margin-bottom: 40px;">
                 <p id="status-text" style="color: var(--text-off); font-size: 0.8rem; letter-spacing: 2px;">DISCONNECTED</p>
-                <p id="active-node-name" style="font-family: 'Cinzel'; margin-top: 10px; font-size: 1.1rem;">---</p>
+                <p id="active-node-name" style="font-family: 'Cinzel'; margin-top: 10px; font-size: 1.1rem;">SELECT NODE</p>
             </div>
         </div>
 
@@ -289,23 +206,13 @@
 
         <div class="view" id="v-settings">
             <div style="background: var(--glass); border-radius: 25px; padding: 25px; border: 1px solid var(--border);">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 25px;">
-                    <span id="label-proto" style="color: var(--text-off);">Protocol</span>
-                    <span style="color: var(--accent);">Arch-UDP (v3)</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 25px;">
-                    <span id="label-enc" style="color: var(--text-off);">Encryption</span>
-                    <span style="color: var(--accent);">AES-512-GCM</span>
-                </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <span id="label-ver" style="color: var(--text-off);">Version</span>
-                    <span style="color: var(--accent);">2.0.0-Gold</span>
-                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 25px;"><span style="color: var(--text-off);">Protocol</span><span style="color: var(--accent);">Arch-UDP (v3)</span></div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 25px;"><span style="color: var(--text-off);">Encryption</span><span style="color: var(--accent);">AES-512-GCM</span></div>
+                <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-off);">Version</span><span style="color: var(--accent);">2.0.0-Gold</span></div>
             </div>
-
             <a href="https://t.me/EliteArchangel" target="_blank" style="text-decoration: none; margin-top: auto;">
                 <div style="background: linear-gradient(135deg, #D4AF37, #B8860B); padding: 20px; border-radius: 20px; text-align: center; color: #000;">
-                    <p style="font-size: 0.6rem; font-weight: bold; opacity: 0.8;" id="label-creator">CREATOR</p>
+                    <p style="font-size: 0.6rem; font-weight: bold; opacity: 0.8;">CREATOR</p>
                     <p style="font-family: 'Cinzel'; font-weight: bold; font-size: 1.1rem;">@EliteArchangel</p>
                 </div>
             </a>
@@ -315,15 +222,15 @@
     <nav>
         <button class="nav-item active" onclick="switchTab('dash', this)">
             <svg viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
-            <span id="nav-dash">Status</span>
+            <span>Status</span>
         </button>
         <button class="nav-item" onclick="switchTab('nodes', this)">
             <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-            <span id="nav-nodes">Nodes</span>
+            <span>Nodes</span>
         </button>
         <button class="nav-item" onclick="switchTab('settings', this)">
-            <svg viewBox="0 0 24 24"><path d="M12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5zm7.14-2.56c.04-.3.06-.61.06-.94s-.02-.64-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.3-.06.61-.06.94s.02.64.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.03-1.58z"/></svg>
-            <span id="nav-setup">Setup</span>
+            <svg viewBox="0 0 24 24"><path d="M12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>
+            <span>Setup</span>
         </button>
     </nav>
 
@@ -335,59 +242,23 @@
             { c: "Archangel Node 2", url: "https://t.me/proxy?server=37.139.43.80&port=443&secret=f5199e949c0f23bc887581218ad8c1e6", ping: 38, icon: "🛡️" },
             { c: "Archangel Node 3", url: "https://t.me/proxy?server=5.188.140.234&port=443&secret=f5199e949c0f23bc887581218ad8c1e6", ping: 55, icon: "⚔️" },
             { c: "Archangel Node 4", url: "https://t.me/proxy?server=5.188.141.236&port=443&secret=f5199e949c0f23bc887581218ad8c1e6", ping: 47, icon: "✨" },
-            { c: "Archangel Node 5", url: "https://t.me/proxy?server=37.139.42.151&port=443&secret=f5199e949c0f23bc887581218ad8c1e6", ping: 31, icon: "👑" }
+            { c: "Archangel Node 5", url: "https://t.me/proxy?server=37.139.42.151&port=443&secret=f5199e949c0f23bc887581218ad8c1e6", ping: 31, icon: "👑" },
+            { c: "Archangel Alpha", url: "https://t.me/proxy?server=5.188.141.236&port=443&secret=f5199e949c0f23bc887581218ad8c1e6", ping: 24, icon: "💎" },
+            { c: "Archangel Beta", url: "https://t.me/proxy?server=5.188.140.234&port=443&secret=f5199e949c0f23bc887581218ad8c1e6", ping: 29, icon: "🚀" },
+            { c: "Archangel Prime", url: "https://t.me/proxy?server=37.139.43.80&port=443&secret=f5199e949c0f23bc887581218ad8c1e6", ping: 18, icon: "🌟" },
+            { c: "Archangel Elite", url: "https://t.me/proxy?server=37.139.42.140&port=443&secret=f5199e949c0f23bc887581218ad8c1e6", ping: 33, icon: "🔱" }
         ];
 
-        const dict = {
-            ru: {
-                title: "ARCHANGEL", connect: "ПОДКЛЮЧИТЬ", disconnect: "ОТКЛЮЧИТЬ",
-                stat_off: "БЕЗ ЗАЩИТЫ", stat_on: "ПОД ЗАЩИТОЙ",
-                nav_d: "Статус", nav_n: "Узлы", nav_s: "Настройка",
-                l_proto: "Протокол", l_enc: "Шифрование", l_ver: "Версия", l_cre: "СОЗДАТЕЛЬ",
-                node_empty: "Узел не выбран", t_err: "ВЫБЕРИТЕ УЗЕЛ", t_on: "ЗАПРОС ОТПРАВЛЕН", t_off: "ЩИТ ДЕАКТИВИРОВАН"
-            },
-            en: {
-                title: "ARCHANGEL", connect: "CONNECT", disconnect: "DISCONNECT",
-                stat_off: "UNPROTECTED", stat_on: "PROTECTED",
-                nav_d: "Status", nav_n: "Nodes", nav_s: "Setup",
-                l_proto: "Protocol", l_enc: "Encryption", l_ver: "Version", l_cre: "CREATOR",
-                node_empty: "No Node Selected", t_err: "SELECT NODE", t_on: "REQUEST SENT", t_off: "SHIELD OFF"
-            }
-        };
-
-        let lang = 'ru';
         let connected = false;
         let selectedNode = null;
 
-        // Intro Logic
         window.onload = () => {
             setTimeout(() => {
                 document.getElementById('intro').style.opacity = '0';
                 setTimeout(() => document.getElementById('intro').remove(), 1500);
                 renderNodes();
-            }, 3000);
+            }, 2500);
         };
-
-        function setLanguage(l) {
-            lang = l;
-            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.toggle('active', btn.innerText.toLowerCase() === l));
-            updateUI();
-        }
-
-        function updateUI() {
-            const d = dict[lang];
-            document.getElementById('ui-title').innerText = d.title;
-            document.getElementById('btn-text').innerText = connected ? d.disconnect : d.connect;
-            document.getElementById('status-text').innerText = connected ? d.stat_on : d.stat_off;
-            document.getElementById('nav-dash').innerText = d.nav_d;
-            document.getElementById('nav-nodes').innerText = d.nav_n;
-            document.getElementById('nav-setup').innerText = d.nav_s;
-            document.getElementById('label-proto').innerText = d.l_proto;
-            document.getElementById('label-enc').innerText = d.l_enc;
-            document.getElementById('label-ver').innerText = d.l_ver;
-            document.getElementById('label-creator').innerText = d.l_cre;
-            if(!selectedNode) document.getElementById('active-node-name').innerText = d.node_empty;
-        }
 
         function switchTab(id, el) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -398,49 +269,37 @@
 
         function renderNodes() {
             const container = document.getElementById('nodes-container');
-            proxyData.forEach((p, i) => {
+            container.innerHTML = '';
+            proxyData.forEach((p) => {
                 const card = document.createElement('div');
                 card.className = 'node-card';
-                card.innerHTML = `
-                    <div class="node-flag">${p.icon}</div>
-                    <div class="node-info">
-                        <h4>${p.c}</h4>
-                        <p>MTProto Proxy</p>
-                    </div>
-                    <div class="node-ping">${p.ping}ms</div>
-                `;
+                card.innerHTML = `<div class="node-flag">${p.icon}</div><div class="node-info"><h4>${p.c}</h4><p>MTProto Proxy</p></div><div class="node-ping">${p.ping}ms</div>`;
                 card.onclick = () => {
                     selectedNode = p;
                     document.querySelectorAll('.node-card').forEach(c => c.classList.remove('selected'));
                     card.classList.add('selected');
                     document.getElementById('active-node-name').innerText = p.c;
-                    switchTab('dash', document.querySelector('.nav-item'));
+                    showToast("NODE SELECTED");
                 };
                 container.appendChild(card);
             });
-            updateUI();
         }
 
         document.getElementById('mainBtn').onclick = function() {
-            if(!selectedNode) {
-                showToast(dict[lang].t_err);
-                return;
-            }
-            
-            // Логика вызова прокси в Telegram
+            if(!selectedNode) { showToast("SELECT NODE FIRST"); return; }
             window.open(selectedNode.url, '_blank');
-            
-            connected = true; // Ставим статус "подключено" после вызова
-            this.classList.add('connected');
-            document.getElementById('canvas-bg').style.opacity = '1';
-            updateUI();
-            showToast(dict[lang].t_on);
+            connected = !connected;
+            this.classList.toggle('connected', connected);
+            document.getElementById('status-text').innerText = connected ? "PROTECTED" : "DISCONNECTED";
+            document.getElementById('btn-text').innerText = connected ? "DISCONNECT" : "CONNECT";
+            document.getElementById('canvas-bg').style.opacity = connected ? '1' : '0.5';
+            showToast(connected ? "SHIELD ACTIVE" : "SHIELD OFF");
         };
 
         function showToast(m) {
             const t = document.getElementById('toast');
             t.innerText = m; t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2500);
+            setTimeout(() => t.classList.remove('show'), 2000);
         }
     </script>
 </body>
