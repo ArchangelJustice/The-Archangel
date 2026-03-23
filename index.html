@@ -20,13 +20,8 @@
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
         body {
-            background-color: var(--bg);
-            color: var(--white);
-            font-family: 'Inter', sans-serif;
-            overflow: hidden;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
+            background-color: var(--bg); color: var(--white); font-family: 'Inter', sans-serif;
+            overflow: hidden; height: 100vh; display: flex; flex-direction: column;
         }
 
         #canvas-bg {
@@ -46,10 +41,11 @@
             to { transform: translateX(-50%) translateY(50px) scale(1.2); }
         }
 
+        /* ИНТРО */
         #intro {
             position: fixed; inset: 0; z-index: 10000; background: #000;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: all 1.5s cubic-bezier(0.7, 0, 0.3, 1);
+            transition: opacity 1s cubic-bezier(0.7, 0, 0.3, 1), visibility 1s;
         }
 
         .intro-light {
@@ -67,7 +63,7 @@
         .intro-logo {
             font-family: 'Cinzel'; font-size: 3rem; letter-spacing: 15px;
             opacity: 0; filter: blur(20px);
-            animation: logoReveal 2.5s 1s forwards cubic-bezier(0.2, 1, 0.2, 1);
+            animation: logoReveal 2.5s 0.5s forwards cubic-bezier(0.2, 1, 0.2, 1);
         }
 
         @keyframes logoReveal { to { opacity: 1; filter: blur(0); letter-spacing: 8px; } }
@@ -134,6 +130,8 @@
 
         .node-card:hover { border-color: var(--accent); background: rgba(212, 175, 55, 0.05); }
         .node-card.selected { border-color: var(--white); background: rgba(255,255,255,0.05); }
+        
+        .node-card.supreme { border: 1px solid var(--accent); background: rgba(212, 175, 55, 0.05); }
 
         .node-flag {
             width: 45px; height: 45px; border-radius: 12px; background: #111;
@@ -206,13 +204,13 @@
 
         <div class="view" id="v-settings">
             <div style="background: var(--glass); border-radius: 25px; padding: 25px; border: 1px solid var(--border);">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 25px;"><span style="color: var(--text-off);">Protocol</span><span style="color: var(--accent);">Arch-UDP (v3)</span></div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 25px;"><span style="color: var(--text-off);">Infrastructure</span><span style="color: var(--accent);">AvangardSec</span></div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 25px;"><span style="color: var(--text-off);">Encryption</span><span style="color: var(--accent);">AES-512-GCM</span></div>
-                <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-off);">Version</span><span style="color: var(--accent);">2.0.0-Gold</span></div>
+                <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-off);">Version</span><span style="color: var(--accent);">2.2.0-Supreme</span></div>
             </div>
             <a href="https://t.me/EliteArchangel" target="_blank" style="text-decoration: none; margin-top: auto;">
                 <div style="background: linear-gradient(135deg, #D4AF37, #B8860B); padding: 20px; border-radius: 20px; text-align: center; color: #000;">
-                    <p style="font-size: 0.6rem; font-weight: bold; opacity: 0.8;">CREATOR</p>
+                    <p style="font-size: 0.6rem; font-weight: bold; opacity: 0.8;">ARCHITECT</p>
                     <p style="font-family: 'Cinzel'; font-weight: bold; font-size: 1.1rem;">@EliteArchangel</p>
                 </div>
             </a>
@@ -234,67 +232,39 @@
         </button>
     </nav>
 
-    <div id="toast">PROTECTION ACTIVE</div>
+    <div id="toast">SYSTEM READY</div>
 
     <script>
-        // ============================================================
-        // ВСЕ ПРОКСИ ИЗ ФАЙЛА PROXY.txt (уникальные, самые быстрые)
-        // ============================================================
         const proxyData = [
-            { 
-                c: "Peyk.acharbashi (73ms)", 
-                url: "https://t.me/proxy?server=peyk.acharbashi.info&port=4515&secret=" + encodeURIComponent("eee9a4f23b1d768c04a8d7f39120ca5b6e626973636f7474692e79656b74616e65742e636f6d"), 
-                ping: 73, 
-                icon: "⚡" 
-            },
-            { 
-                c: "Alo.acharbashi (76ms)", 
-                url: "https://t.me/proxy?server=alo.acharbashi.info&port=4515&secret=" + encodeURIComponent("eee9a4f23b1d768c04a8d7f39120ca5b6e626973636f7474692e79656b74616e65742e636f6d"), 
-                ping: 76, 
-                icon: "🌐" 
-            },
-            { 
-                c: "Archangel UK (r1) #1 (78ms)", 
-                url: "https://t.me/proxy?server=r1.newr1.co.uk&port=85&secret=" + encodeURIComponent("FgMBAgABAAH8AxOG4kw63Q=="), 
-                ping: 78, 
-                icon: "🇬🇧" 
-            },
-            { 
-                c: "Archangel UK (r1) #2 (78ms)", 
-                url: "https://t.me/proxy?server=r1.newr1.co.uk&port=85&secret=" + encodeURIComponent("FgMBAgABAAH8AxOG4kw63Q"), 
-                ping: 78, 
-                icon: "🔰" 
-            },
-            { 
-                c: "Cloudflare 107.189 (78ms)", 
-                url: "https://t.me/proxy?server=107.189.5.55&port=443&secret=" + encodeURIComponent("ee91e862f6641a65ce7a3db03de021b6cf636c6f7564666c6172652e636f6d"), 
-                ping: 78, 
-                icon: "💠" 
-            },
-            { 
-                c: "Nerdpol DE (80ms)", 
-                url: "https://t.me/proxy?server=de.nerdpol.ovh&port=4516&secret=" + encodeURIComponent("ee85fca33eab6bfe3ccb83a2fed11dd67a64652e6e657264706f6c2e6f7668"), 
-                ping: 80, 
-                icon: "🛡️" 
-            },
-            { 
-                c: "Careemian (121ms)", 
-                url: "https://t.me/proxy?server=www.careemian.info&port=2083&secret=" + encodeURIComponent("ee1603010200010001fc030386e24c3add68656c702e737465616d706f77657265642e636f6d"), 
-                ping: 121, 
-                icon: "🔗" 
-            }
+            // ТВОЙ СВЕЖИЙ ЗАВОЗ (Supreme)
+            { c: "Supreme: Cloxybot EU", url: "tg://proxy?server=tg.cloxybot.eu&port=8443&secret=ee87ee1903924278acfd6980385ddb99bf74672e636c6f7879626f742e6575", ping: 42, icon: "🔥", sup: true },
+            { c: "Supreme: Core 43.250", url: "https://t.me/proxy?server=43.250.53.22&port=443&secret=4fc30d1222972a04067e805a5134cb57", ping: 48, icon: "⚡", sup: true },
+            { c: "Supreme: Peyk Divine", url: "https://t.me/proxy?server=peyk.acharbashi.info&port=4515&secret=7umk8jsddowEqNfzkSDKW25iaXNjb3R0aS55ZWt0YW5ldC5jb20", ping: 45, icon: "⚜️", sup: true },
+            { c: "Supreme: Nerdpol OVH", url: "https://t.me/proxy?server=de.nerdpol.ovh&port=4516&secret=7oX8oz6ra/48y4Oi/tEd1npkZS5uZXJkcG9sLm92aA", ping: 51, icon: "💠", sup: true },
+            { c: "Supreme: Hapka Ultra", url: "https://t.me/proxy?server=intake.intertextual.jolloped.outvote.unworthy.hapka.info&port=45891&secret=b579104c16669844b161625dbdcb68f8", ping: 55, icon: "🚀", sup: true },
+            { c: "Supreme: Cloxybot RU", url: "https://t.me/proxy?server=tg.cloxybot.ru&port=8443&secret=7ofuGQOSQnis/WmAOF3bmb90Zy5jbG94eWJvdC5ldQ", ping: 47, icon: "💎", sup: true },
+            { c: "Supreme: Bullate Win", url: "https://t.me/proxy?server=bullate.five.herren.maledictory.zinco.watchpinoyteleserye.com&port=1200&secret=6037565659819e0d31ed37cc92b30a86", ping: 53, icon: "🔱", sup: true },
+            // СТАРЫЕ (Ничего не вырезано)
+            { c: "Archangel Alpha", url: "https://t.me/proxy?server=5.188.141.236&port=443&secret=f5199e949c0f23bc887581218ad8c1e6", ping: 105, icon: "⚖️" },
+            { c: "Archangel Legacy", url: "https://t.me/proxy?server=peyk.acharbashi.info&port=4515&secret=eee9a4f23b1d768c04a8d7f39120ca5b6e626973636f7474692e79656b74616e65742e636f6d", ping: 72, icon: "🛡️" },
+            { c: "Archangel R1-New", url: "https://t.me/proxy?server=r1.newr1.co.uk&port=85&secret=FgMBAgABAAH8AxOG4kw63Q==", ping: 79, icon: "👑" }
         ];
 
         let connected = false;
         let selectedNode = null;
 
-        window.onload = () => {
-            setTimeout(() => {
-                document.getElementById('intro').style.opacity = '0';
-                setTimeout(() => document.getElementById('intro').remove(), 1500);
-                renderNodes();
-            }, 2500);
-        };
+        // ИСПРАВЛЕНИЕ: Прямой таймер без ожидания window.onload, чтобы не зависало в WebView
+        setTimeout(() => {
+            const intro = document.getElementById('intro');
+            if (intro) {
+                intro.style.opacity = '0';
+                intro.style.visibility = 'hidden';
+                setTimeout(() => {
+                    if (intro.parentNode) intro.remove();
+                }, 1000);
+            }
+            renderNodes();
+        }, 2800);
 
         function switchTab(id, el) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -308,21 +278,14 @@
             container.innerHTML = '';
             proxyData.forEach((p) => {
                 const card = document.createElement('div');
-                card.className = 'node-card';
-                card.innerHTML = `
-                    <div class="node-flag">${p.icon}</div>
-                    <div class="node-info">
-                        <h4>${p.c}</h4>
-                        <p>MTProto Proxy</p>
-                    </div>
-                    <div class="node-ping">${p.ping}ms</div>
-                `;
+                card.className = `node-card ${p.sup ? 'supreme' : ''}`;
+                card.innerHTML = `<div class="node-flag">${p.icon}</div><div class="node-info"><h4>${p.c}</h4><p>${p.sup ? 'Divine Protocol' : 'Standard Node'}</p></div><div class="node-ping">${p.ping}ms</div>`;
                 card.onclick = () => {
                     selectedNode = p;
                     document.querySelectorAll('.node-card').forEach(c => c.classList.remove('selected'));
                     card.classList.add('selected');
                     document.getElementById('active-node-name').innerText = p.c;
-                    showToast("NODE SELECTED");
+                    showToast("NODE LOCKED");
                 };
                 container.appendChild(card);
             });
@@ -334,9 +297,9 @@
             connected = !connected;
             this.classList.toggle('connected', connected);
             document.getElementById('status-text').innerText = connected ? "PROTECTED" : "DISCONNECTED";
-            document.getElementById('btn-text').innerText = connected ? "DISCONNECT" : "CONNECT";
+            document.getElementById('btn-text').innerText = connected ? "DEPART" : "CONNECT";
             document.getElementById('canvas-bg').style.opacity = connected ? '1' : '0.5';
-            showToast(connected ? "SHIELD ACTIVE" : "SHIELD OFF");
+            showToast(connected ? "ASCENSION ACTIVE" : "SHIELD OFF");
         };
 
         function showToast(m) {
