@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DolWall — Система Гибкого Мрамора</title>
+    <title>DolWall — Система Гибкого Мрамора (Bark уведомления)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -205,8 +205,8 @@
         <div class="modal-content">
             <div id="waitBox">
                 <i class="fa-solid fa-compass loader-icon"></i>
-                <h3 style="font-size: 1.8rem; font-weight: 900; margin-bottom: 15px;">Связываемся с менеджером...</h3>
-                <p style="color: #999; line-height: 1.6;">Ваш заказ формируется и отправляется администратору DolWall в Telegram.</p>
+                <h3 style="font-size: 1.8rem; font-weight: 900; margin-bottom: 15px;">Ожидаем ответа менеджера...</h3>
+                <p style="color: #999; line-height: 1.6;">Менеджеру отправлено уведомление через Bark. Как только он подтвердит заказ — вы увидите результат.</p>
             </div>
             <div id="successBox" class="hidden">
                 <i class="fa-solid fa-crown" style="font-size: 6rem; color: var(--gold); margin-bottom: 30px; animation: bounce 2s infinite;"></i>
@@ -220,38 +220,71 @@
                     <i class="fa-brands fa-telegram"></i> Написать в Telegram
                 </a>
             </div>
+            <div id="rejectedBox" class="hidden">
+                <i class="fa-solid fa-circle-xmark" style="font-size: 6rem; color: #e74c3c; margin-bottom: 30px;"></i>
+                <h2 style="color: #c0392b; margin-bottom: 20px; font-size: 2rem; font-weight: 900;">ЗАКАЗ ОТКЛОНЁН</h2>
+                <p style="font-size: 1.2rem;">Менеджер отклонил ваш заказ. Свяжитесь с нами для уточнения деталей.</p>
+                <a href="https://t.me/dolgov_offical" class="intro-btn" style="margin-top: 30px; text-decoration: none; display: inline-block; background: #0088cc; color: #fff; border: none;">
+                    <i class="fa-brands fa-telegram"></i> Написать в Telegram
+                </a>
+            </div>
         </div>
     </div>
 
     <script>
-        // ==================== ПРОКСИФИКАЦИЯ TELEGRAM BOT API ====================
-        // Используется публичный CORS-прокси для обхода блокировок (без изменения логики работы)
-        const PROXY_ENABLED = true;
-        const PROXY_URL = "https://corsproxy.io/?";  // Надёжный прокси-сервер для HTTP запросов
+        // ==================== НАСТРОЙКИ BARK УВЕДОМЛЕНИЙ ====================
+        // Bark API endpoint (официальный сервер)
+        const BARK_API_URL = "https://api.day.app";
+        // ⚠️ ВСТАВЬТЕ ВАШ КЛЮЧ ИЗ ПРИЛОЖЕНИЯ BARK (скопируйте после регистрации устройства)
+        const BARK_DEVICE_KEY = "https://api.day.app/2mfG6468JsmXaVLaLETob";
+        // URL вашего Google Apps Script (вебхук для получения статуса подтверждения)
+        const GAS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyaJRI_mPw0mLaRtiX6wTvWfsXt6UWR_T4TvQMC0oFC-riAMem9vHw3jBJ5amrU8zf7/exec";
         
-        // Оригинальные URL Telegram API будут автоматически обёрнуты в прокси
-        function wrapTelegramUrl(originalUrl) {
-            if (!PROXY_ENABLED) return originalUrl;
-            // Кодируем оригинальный URL и добавляем прокси
-            return PROXY_URL + encodeURIComponent(originalUrl);
+        // Функция отправки уведомления через Bark
+        async function sendBarkNotification(title, body, orderId) {
+            // URL для GET-запроса к Bark API [citation:10]
+            // Формат: /{device_key}/{title}/{body}?url={callback_url}
+            // URL нужно закодировать, чтобы передать параметры [citation:8]
+            const callbackUrl = `${window.location.origin}?confirm=${orderId}`;
+            const encodedCallback = encodeURIComponent(callbackUrl);
+            const encodedTitle = encodeURIComponent(title);
+            const encodedBody = encodeURIComponent(body);
+            
+            // Добавляем параметры: level=timeSensitive (для срочных уведомлений), group, url
+            const url = `${BARK_API_URL}/${BARK_DEVICE_KEY}/${encodedTitle}/${encodedBody}?level=timeSensitive&group=Заказы&url=${encodedCallback}&automaticallyCopy=1`;
+            
+            try {
+                console.log("Отправка Bark уведомления:", url);
+                const response = await fetch(url, { mode: 'no-cors' });
+                console.log("Bark уведомление отправлено");
+                return true;
+            } catch (err) {
+                console.error("Ошибка отправки Bark:", err);
+                throw err;
+            }
         }
         
-        // Функция-обёртка для fetch с автоматической проксификацией
-        async function tgFetch(originalUrl, options = {}) {
-            const proxiedUrl = wrapTelegramUrl(originalUrl);
-            // Сохраняем оригинальные заголовки, метод, тело
-            const response = await fetch(proxiedUrl, options);
-            // Прокси возвращает ответ "как есть", никакой дополнительной обработки не требуется
-            return response;
+        // Сохраняем статус заказа в Google Apps Script
+        async function setOrderStatus(orderId, status) {
+            await fetch(GAS_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId, status, action: 'set' })
+            });
         }
-        // ========================================================================
+        
+        async function getOrderStatus(orderId) {
+            const res = await fetch(`${GAS_WEBHOOK_URL}?orderId=${orderId}&action=get`);
+            const data = await res.json();
+            return data.status; // 'pending', 'approved', 'rejected'
+        }
+        // =================================================================
 
-        const BOT_TOKEN = '8680879890:AAEzkAkBonBAq_FATGzAvnj8pRKpVS4avDc';
-        const ADMINS = ['753561636', '7316276135'];
         const ITEM_PRICE = 6600;
-        
         let client = JSON.parse(localStorage.getItem('dolwall_user')) || null;
         let cart = [];
+        let currentOrderId = null;
+        let statusPoller = null;
 
         const products = [
             { id: 1, name: "Черное золото", type: "Глянцевый", img: "https://img.freepik.com/premium-vector/black-golden-marble-background-with-smudge-grey-effect-abstract-background_1051181-845.jpg" },
@@ -307,12 +340,10 @@
                 ph: document.getElementById('userPhone').value.trim(),
                 ad: document.getElementById('userAddr').value.trim()
             };
-
             if(!data.ln || !data.fn || !data.ph || !data.ad) {
                 notify("Заполните все данные для доставки!");
                 return;
             }
-
             client = data;
             localStorage.setItem('dolwall_user', JSON.stringify(client));
             document.getElementById('regModal').classList.remove('active');
@@ -392,8 +423,15 @@
 
         async function sendOrder() {
             if(cart.length === 0) return notify("Корзина пуста!");
-
+            
+            // Проверяем, что ключ Bark вставлен
+            if(BARK_DEVICE_KEY === "СКОПИРУЙТЕ_КЛЮЧ_ИЗ_ПРИЛОЖЕНИЯ_И_ВСТАВЬТЕ_СЮДА") {
+                notify("⚠️ Сначала настройте Bark: скопируйте ключ из приложения и вставьте в код!");
+                return;
+            }
+            
             const orderId = Math.floor(Math.random() * 89999) + 10000;
+            currentOrderId = orderId;
             const totalSum = cart.length * ITEM_PRICE;
             
             let itemsList = '';
@@ -402,72 +440,61 @@
             for(let name in groups) {
                 itemsList += `▫️ ${name}: ${groups[name]} шт.\n`;
             }
-
-            const messageText = `🔥 <b>НОВЫЙ ЗАКАЗ DolWall #${orderId}</b>\n\n` +
-                                `👤 <b>Клиент:</b> ${client.ln} ${client.fn}\n` +
-                                `📞 <b>Телефон:</b> ${client.ph}\n` +
-                                `📍 <b>Адрес:</b> ${client.ad}\n\n` +
-                                `📦 <b>Состав заказа:</b>\n${itemsList}\n` +
-                                `📈 <b>ВСЕГО ТОВАРОВ:</b> ${cart.length} шт.\n` +
-                                `💰 <b>СУММА К ОПЛАТЕ: ${totalSum.toLocaleString()}₽</b>`;
-
-            const keyboard = {
-                inline_keyboard: [[
-                    { text: "✅ ПОДТВЕРДИТЬ", callback_data: `ok_${orderId}` },
-                    { text: "❌ ОТМЕНИТЬ", callback_data: `no_${orderId}` }
-                ]]
-            };
-
+            
+            // Формируем заголовок и тело уведомления для Bark
+            const notificationTitle = `🪨 НОВЫЙ ЗАКАЗ #${orderId}`;
+            const notificationBody = `${client.fn}\n💰 ${totalSum.toLocaleString()}₽\n📦 ${cart.length} шт.\n\nНажмите для подтверждения`;
+            
+            // Отправляем уведомление через Bark
+            try {
+                await sendBarkNotification(notificationTitle, notificationBody, orderId);
+                notify("Уведомление отправлено менеджеру через Bark!");
+            } catch(err) {
+                notify("Не удалось отправить уведомление. Проверьте ключ Bark.");
+                return;
+            }
+            
+            // Сохраняем статус заказа (pending)
+            await setOrderStatus(orderId, 'pending');
+            
+            // Показываем модальное окно ожидания
             document.getElementById('statusModal').classList.add('active');
             document.getElementById('waitBox').classList.remove('hidden');
             document.getElementById('successBox').classList.add('hidden');
-
-            // Отправляем сообщение через прокси (используем обёртку tgFetch)
-            const sendPromises = ADMINS.map(adminId => {
-                const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-                return tgFetch(url, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        chat_id: adminId,
-                        text: messageText,
-                        parse_mode: 'HTML',
-                        reply_markup: keyboard
-                    })
-                }).then(res => res.json());
-            });
-
-            const results = await Promise.all(sendPromises);
-            const anyError = results.find(r => !r.ok);
-            if(anyError) {
-                console.error("Ошибка Telegram API:", anyError);
-                notify("Ошибка отправки заказа, попробуйте позже");
-                document.getElementById('statusModal').classList.remove('active');
-                return;
-            }
-
-            // Пуллер для получения подтверждения (также через прокси)
-            const poller = setInterval(async () => {
+            document.getElementById('rejectedBox').classList.add('hidden');
+            
+            // Начинаем опрос статуса (как админ нажмёт на уведомление)
+            if(statusPoller) clearInterval(statusPoller);
+            statusPoller = setInterval(async () => {
                 try {
-                    const getUpdatesUrl = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=-1`;
-                    const resp = await tgFetch(getUpdatesUrl);
-                    const data = await resp.json();
-                    if(data.result && data.result.length > 0) {
-                        const lastUpdate = data.result[0];
-                        if(lastUpdate.callback_query && lastUpdate.callback_query.data === `ok_${orderId}`) {
-                            document.getElementById('waitBox').classList.add('hidden');
-                            document.getElementById('successBox').classList.remove('hidden');
-                            clearInterval(poller);
-                            cart = [];
-                            updateCartUI();
-                            // Дополнительно закрываем корзину, если открыта
-                            document.getElementById('cartBox').classList.remove('open');
-                        }
+                    const status = await getOrderStatus(orderId);
+                    if(status === 'approved') {
+                        clearInterval(statusPoller);
+                        document.getElementById('waitBox').classList.add('hidden');
+                        document.getElementById('successBox').classList.remove('hidden');
+                        cart = [];
+                        updateCartUI();
+                        const cartSidebar = document.getElementById('cartBox');
+                        if(cartSidebar.classList.contains('open')) cartSidebar.classList.remove('open');
+                        notify("Заказ подтверждён! Спасибо за покупку!");
+                    } else if(status === 'rejected') {
+                        clearInterval(statusPoller);
+                        document.getElementById('waitBox').classList.add('hidden');
+                        document.getElementById('rejectedBox').classList.remove('hidden');
+                        notify("Заказ отклонён менеджером.");
                     }
-                } catch (e) {
-                    console.error("Ошибка проверки статуса через прокси:", e);
+                } catch(e) { console.warn(e); }
+            }, 4000);
+            
+            // Таймаут 10 минут
+            setTimeout(() => {
+                if(statusPoller) {
+                    clearInterval(statusPoller);
+                    if(document.getElementById('waitBox').classList.contains('hidden')) return;
+                    notify("Время ожидания истекло. Менеджер свяжется с вами.");
+                    document.getElementById('statusModal').classList.remove('active');
                 }
-            }, 3000);
+            }, 600000);
         }
     </script>
 </body>
