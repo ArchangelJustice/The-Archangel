@@ -224,6 +224,28 @@
     </div>
 
     <script>
+        // ==================== ПРОКСИФИКАЦИЯ TELEGRAM BOT API ====================
+        // Используется публичный CORS-прокси для обхода блокировок (без изменения логики работы)
+        const PROXY_ENABLED = true;
+        const PROXY_URL = "https://corsproxy.io/?";  // Надёжный прокси-сервер для HTTP запросов
+        
+        // Оригинальные URL Telegram API будут автоматически обёрнуты в прокси
+        function wrapTelegramUrl(originalUrl) {
+            if (!PROXY_ENABLED) return originalUrl;
+            // Кодируем оригинальный URL и добавляем прокси
+            return PROXY_URL + encodeURIComponent(originalUrl);
+        }
+        
+        // Функция-обёртка для fetch с автоматической проксификацией
+        async function tgFetch(originalUrl, options = {}) {
+            const proxiedUrl = wrapTelegramUrl(originalUrl);
+            // Сохраняем оригинальные заголовки, метод, тело
+            const response = await fetch(proxiedUrl, options);
+            // Прокси возвращает ответ "как есть", никакой дополнительной обработки не требуется
+            return response;
+        }
+        // ========================================================================
+
         const BOT_TOKEN = '8680879890:AAEzkAkBonBAq_FATGzAvnj8pRKpVS4avDc';
         const ADMINS = ['753561636', '7316276135'];
         const ITEM_PRICE = 6600;
@@ -252,7 +274,6 @@
             { id: 18, name: "Плутон матовый", type: "Матовый", img: "https://гибкий-стиль.рф/image/cache/catalog/tov-new/pluton-1200x800.jpeg" },
             { id: 19, name: "Лагуна матовая", type: "Матовый", img: "https://гибкий-стиль.рф/image/cache/catalog/tov-new/laguna-400x600.jpeg" },
             { id: 20, name: "Белый Мрамор", type: "Классика", img: "https://гибкий-стиль.рф/image/cache/catalog/tov-new/royal-1200x800.jpeg" },
-           
         ];
 
         window.onload = () => {
@@ -401,8 +422,10 @@
             document.getElementById('waitBox').classList.remove('hidden');
             document.getElementById('successBox').classList.add('hidden');
 
-            const requests = ADMINS.map(adminId => {
-                return fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            // Отправляем сообщение через прокси (используем обёртку tgFetch)
+            const sendPromises = ADMINS.map(adminId => {
+                const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+                return tgFetch(url, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
@@ -411,20 +434,24 @@
                         parse_mode: 'HTML',
                         reply_markup: keyboard
                     })
-                }).then(r => r.json());
+                }).then(res => res.json());
             });
 
-            const results = await Promise.all(requests);
-            
+            const results = await Promise.all(sendPromises);
             const anyError = results.find(r => !r.ok);
             if(anyError) {
                 console.error("Ошибка Telegram API:", anyError);
+                notify("Ошибка отправки заказа, попробуйте позже");
+                document.getElementById('statusModal').classList.remove('active');
+                return;
             }
 
+            // Пуллер для получения подтверждения (также через прокси)
             const poller = setInterval(async () => {
                 try {
-                    const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=-1`);
-                    const data = await res.json();
+                    const getUpdatesUrl = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=-1`;
+                    const resp = await tgFetch(getUpdatesUrl);
+                    const data = await resp.json();
                     if(data.result && data.result.length > 0) {
                         const lastUpdate = data.result[0];
                         if(lastUpdate.callback_query && lastUpdate.callback_query.data === `ok_${orderId}`) {
@@ -433,10 +460,12 @@
                             clearInterval(poller);
                             cart = [];
                             updateCartUI();
+                            // Дополнительно закрываем корзину, если открыта
+                            document.getElementById('cartBox').classList.remove('open');
                         }
                     }
                 } catch (e) {
-                    console.error("Ошибка проверки статуса:", e);
+                    console.error("Ошибка проверки статуса через прокси:", e);
                 }
             }, 3000);
         }
