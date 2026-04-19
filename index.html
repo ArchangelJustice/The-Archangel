@@ -14,7 +14,7 @@
             touch-action: manipulation;
         }
         
-        /* Главное меню — полностью скрыто, но оставляем структуру для совместимости */
+        /* Главное меню полностью скрыто */
         #mainMenu {
             position: fixed;
             top: 0;
@@ -22,7 +22,7 @@
             width: 100%;
             height: 100%;
             background: rgba(10, 5, 20, 0.95);
-            display: none; /* Скрыто навсегда */
+            display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
@@ -46,7 +46,6 @@
             font-family: Arial, sans-serif;
         }
         
-        /* Баннер с балансом */
         #balanceBanner {
             background: linear-gradient(90deg, #ff2e63 0%, #ff6b9d 100%);
             padding: 12px 25px;
@@ -102,7 +101,6 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
         
-        /* Экран магазина */
         #shopScreen {
             position: fixed;
             top: 0;
@@ -238,7 +236,6 @@
             transform: scale(0.95);
         }
         
-        /* Экран настроек */
         #settingsScreen {
             position: fixed;
             top: 0;
@@ -323,7 +320,6 @@
             background: rgba(255, 46, 99, 0.2);
         }
         
-        /* Всплывающие сообщения */
         #messageBox {
             position: fixed;
             top: 20px;
@@ -391,7 +387,6 @@
             color: white;
         }
         
-        /* Статистика */
         #statsScreen {
             position: fixed;
             top: 0;
@@ -436,7 +431,6 @@
             font-weight: bold;
         }
         
-        /* Игровой интерфейс */
         #ui {
             position: absolute;
             top: 20px;
@@ -448,7 +442,6 @@
             display: none;
         }
         
-        /* Управление */
         #controls {
             position: absolute;
             bottom: 40px;
@@ -530,7 +523,6 @@
             text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         }
         
-        /* Экран завершения игры */
         #gameOverScreen {
             position: fixed;
             top: 0;
@@ -685,19 +677,18 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 
     <script>
-        // ==================== НАСТРОЙКИ ГРАФИКИ ====================
+        // ==================== НАСТРОЙКИ ГРАФИКИ (СРЕДНИЕ) ====================
         let graphicsSettings = {
-            quality: 'medium',   // принудительно средние
+            quality: 'medium',
             trafficDensity: 1.0,
             dayNightCycle: true,
             lightsEnabled: true,
-            polesEnabled: false,   // средние: без столбов
+            polesEnabled: false,
             decorationsEnabled: false
         };
 
         // ==================== ОПТИМИЗАЦИЯ ====================
-        const tempVector = new THREE.Vector3();
-        let frameCount = 0, lastFPSUpdate = 0, deltaTime = 0, lastFrameTime = 0, animationId = null;
+        let deltaTime = 0, lastFrameTime = 0, animationId = null;
 
         // ==================== СИСТЕМА СОХРАНЕНИЯ ====================
         let playerData = {
@@ -747,7 +738,7 @@
         function showStatsScreen() { updateStatsDisplay(); document.getElementById('mainMenu').style.display = 'none'; document.getElementById('statsScreen').style.display = 'flex'; }
         function closeStats() { document.getElementById('statsScreen').style.display = 'none'; document.getElementById('mainMenu').style.display = 'flex'; }
         function exitGame() { showConfirm('Вы уверены, что хотите выйти из игры?', (c) => { if(c) showMessage('Спасибо за игру! Ваш прогресс сохранен.'); }); }
-        function updateShopUI() { /* ... полная логика из оригинала ... */ 
+        function updateShopUI() {
             const ups = playerData.upgrades;
             document.getElementById('level1').innerHTML = `УР. ${ups.engine.level}`;
             document.getElementById('cost1').innerHTML = `${ups.engine.cost} км`;
@@ -769,7 +760,7 @@
         function setGraphics(quality) { graphicsSettings.quality = quality; if(quality === 'low') { graphicsSettings.dayNightCycle = false; graphicsSettings.lightsEnabled = false; graphicsSettings.polesEnabled = false; graphicsSettings.decorationsEnabled = false; } else if(quality === 'medium') { graphicsSettings.dayNightCycle = true; graphicsSettings.lightsEnabled = true; graphicsSettings.polesEnabled = false; graphicsSettings.decorationsEnabled = false; } else { graphicsSettings.dayNightCycle = true; graphicsSettings.lightsEnabled = true; graphicsSettings.polesEnabled = true; graphicsSettings.decorationsEnabled = true; } updateSettingsUI(); savePlayerData(); showMessage('Графика: ' + quality.toUpperCase()); }
         function updateTrafficDensity(val) { graphicsSettings.trafficDensity = parseFloat(val); document.getElementById('trafficDensityValue').textContent = val; savePlayerData(); }
 
-        // ==================== ИГРОВАЯ ЛОГИКА (с загрузкой модели) ====================
+        // ==================== ИГРОВАЯ ЛОГИКА ====================
         let scene, camera, renderer, player;
         let score = 0, speed = 65, gameActive = false, steerMomentum = 0;
         const MAX_STEER_SPEED = 28, STEER_ACCEL = 45;
@@ -779,48 +770,9 @@
         const keys = { left: false, right: false, gas: false };
         let sun, ambient, dayTime = 0, DAY_DURATION = 60;
         let targetSpeed = 65, acceleration = 0.5, deceleration = 0.8, carPitch = 0;
-        let carModelLoaded = false;
         let customCarGroup = null;
 
-        // Загрузка модели из папки Car (формат GLB, т.к. .blend не поддерживается Three.js)
-        function loadCustomCarModel(onComplete) {
-            const loader = new THREE.GLTFLoader();
-            loader.load('./Car/car.glb', (gltf) => {
-                const model = gltf.scene;
-                model.scale.set(0.8, 0.8, 0.8);
-                model.position.set(0, 0, 0);
-                model.traverse(child => { if(child.isMesh) { child.castShadow = true; child.receiveShadow = true; } });
-                const carGroup = new THREE.Group();
-                carGroup.add(model);
-                // Добавляем заглушки для поворотников и фар (оригинальная система)
-                carGroup.userData = {
-                    blinkers: {
-                        left: [createDebugBlinker(-0.9, 0.5, -2.2), createDebugBlinker(-0.9, 0.6, 2.2)],
-                        right: [createDebugBlinker(0.9, 0.5, -2.2), createDebugBlinker(0.9, 0.6, 2.2)]
-                    },
-                    headlights: [],
-                    playerPointLight: null
-                };
-                if(graphicsSettings.lightsEnabled) {
-                    const leftLight = new THREE.SpotLight(0xffffff, 2.5, 50, 0.5, 0.3, 1);
-                    leftLight.position.set(-0.7, 0.8, -2.2);
-                    leftLight.target = new THREE.Object3D(); leftLight.target.position.set(0, 0.8, -20);
-                    carGroup.add(leftLight); carGroup.add(leftLight.target);
-                    const rightLight = new THREE.SpotLight(0xffffff, 2.5, 50, 0.5, 0.3, 1);
-                    rightLight.position.set(0.7, 0.8, -2.2);
-                    rightLight.target = new THREE.Object3D(); rightLight.target.position.set(0, 0.8, -20);
-                    carGroup.add(rightLight); carGroup.add(rightLight.target);
-                    carGroup.userData.headlights = [leftLight, rightLight];
-                    const pLight = new THREE.PointLight(0xffffff, 0.6, 25);
-                    pLight.position.set(0, 2, -5);
-                    carGroup.add(pLight);
-                    carGroup.userData.playerPointLight = pLight;
-                }
-                function createDebugBlinker(x, y, z) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.2,0.15,0.1), new THREE.MeshStandardMaterial({color:0xffaa00})); b.position.set(x,y,z); b.visible = false; carGroup.add(b); return b; }
-                onComplete(carGroup);
-            }, undefined, (error) => { console.warn('Не удалось загрузить модель из Car/car.glb, используем стандартную машину', error); onComplete(null); });
-        }
-
+        // Стандартная машина (запасной вариант)
         function createStandardPlayerCar() {
             const car = new THREE.Group();
             const bodyMat = new THREE.MeshStandardMaterial({ color: 0xffd300 });
@@ -834,11 +786,50 @@
             const wheel = (x,z) => { const wg = new THREE.Group(); wg.position.set(x,0.35,z); addBox(0.5,0.8,0.8,0,0,0,0x111111,blackMat); addBox(0.55,0.5,0.5,0,0,0,0xcccccc); addBox(0.58,0.15,0.15,0,0,0,0x333333); car.add(wg); return wg; };
             car.userData.wheels = [wheel(-1,1.4), wheel(1,1.4), wheel(-1,-1.4), wheel(1,-1.4)];
             car.userData.blinkers = { left: [], right: [] };
-            if(graphicsSettings.lightsEnabled) { const lt = new THREE.Object3D(); lt.position.set(0,0.8,-20); car.add(lt); const leftL = new THREE.SpotLight(0xffffff,2.5,50,0.5,0.3,1); leftL.position.set(-0.7,0.8,-2.2); leftL.target=lt; car.add(leftL); const rightL = new THREE.SpotLight(0xffffff,2.5,50,0.5,0.3,1); rightL.position.set(0.7,0.8,-2.2); rightL.target=lt; car.add(rightL); car.userData.headlights=[leftL,rightL]; const pL=new THREE.PointLight(0xffffff,0.6,25); pL.position.set(0,2,-5); car.add(pL); car.userData.playerPointLight=pL; }
+            if(graphicsSettings.lightsEnabled) { 
+                const lt = new THREE.Object3D(); lt.position.set(0,0.8,-20); car.add(lt); 
+                const leftL = new THREE.SpotLight(0xffffff,2.5,50,0.5,0.3,1); leftL.position.set(-0.7,0.8,-2.2); leftL.target=lt; car.add(leftL); 
+                const rightL = new THREE.SpotLight(0xffffff,2.5,50,0.5,0.3,1); rightL.position.set(0.7,0.8,-2.2); rightL.target=lt; car.add(rightL); 
+                car.userData.headlights=[leftL,rightL]; 
+                const pL=new THREE.PointLight(0xffffff,0.6,25); pL.position.set(0,2,-5); car.add(pL); car.userData.playerPointLight=pL; 
+            }
             return car;
         }
 
-        function startGame() { document.getElementById('mainMenu').style.display = 'none'; init(); }
+        // Загрузка пользовательской модели из Car/car.glb (если есть)
+        function loadCustomCarModel(onComplete) {
+            const loader = new THREE.GLTFLoader();
+            loader.load('./Car/car.glb', (gltf) => {
+                const model = gltf.scene;
+                model.scale.set(0.8, 0.8, 0.8);
+                model.position.set(0, 0, 0);
+                model.traverse(child => { if(child.isMesh) { child.castShadow = true; child.receiveShadow = true; } });
+                const carGroup = new THREE.Group();
+                carGroup.add(model);
+                // Добавляем заглушки для поворотников (чтобы не ломалась логика)
+                carGroup.userData = {
+                    blinkers: { left: [], right: [] },
+                    headlights: [],
+                    playerPointLight: null
+                };
+                if(graphicsSettings.lightsEnabled) {
+                    const lt = new THREE.Object3D(); lt.position.set(0,0.8,-20); carGroup.add(lt);
+                    const leftL = new THREE.SpotLight(0xffffff,2.5,50,0.5,0.3,1); leftL.position.set(-0.7,0.8,-2.2); leftL.target=lt; carGroup.add(leftL);
+                    const rightL = new THREE.SpotLight(0xffffff,2.5,50,0.5,0.3,1); rightL.position.set(0.7,0.8,-2.2); rightL.target=lt; carGroup.add(rightL);
+                    carGroup.userData.headlights = [leftL, rightL];
+                    const pL = new THREE.PointLight(0xffffff,0.6,25); pL.position.set(0,2,-5); carGroup.add(pL); carGroup.userData.playerPointLight = pL;
+                }
+                onComplete(carGroup);
+            }, undefined, (error) => {
+                console.warn('Модель Car/car.glb не найдена, используем стандартную машину', error);
+                onComplete(null);
+            });
+        }
+
+        function startGame() { 
+            document.getElementById('mainMenu').style.display = 'none'; 
+            init(); 
+        }
 
         function init() {
             if(animationId) cancelAnimationFrame(animationId);
@@ -847,19 +838,48 @@
             enemies.length=0; decors.length=0; streetLights.length=0;
             if(scene) while(scene.children.length) scene.remove(scene.children[0]);
             if(renderer && renderer.domElement.parentNode) { renderer.domElement.parentNode.removeChild(renderer.domElement); renderer.dispose(); }
+            
             scene = new THREE.Scene(); scene.background = new THREE.Color(0x3d2b56); scene.fog = new THREE.Fog(0x3d2b56,40,180);
             camera = new THREE.PerspectiveCamera(45, window.innerWidth/innerHeight,0.1,300); camera.position.set(0,18,35); camera.lookAt(0,0,-10);
-            renderer = new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance"}); renderer.setSize(window.innerWidth,window.innerHeight); renderer.shadowMap.enabled=true; document.body.appendChild(renderer.domElement);
+            renderer = new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance"}); 
+            renderer.setSize(window.innerWidth,window.innerHeight); renderer.shadowMap.enabled=true; 
+            document.body.appendChild(renderer.domElement);
+            
             ambient = new THREE.AmbientLight(0xffffff,0.7); scene.add(ambient);
             sun = new THREE.DirectionalLight(0xfff0dd,0.8); sun.position.set(-30,60,20); sun.castShadow=true; scene.add(sun);
-            // Мир (упрощён под средние настройки)
-            const road = new THREE.Mesh(new THREE.BoxGeometry(24,0.2,2000), new THREE.MeshStandardMaterial({color:0x333333})); road.position.set(0,-0.1,0); road.receiveShadow=true; scene.add(road);
-            new THREE.Mesh(new THREE.BoxGeometry(0.6,1.8,2000), new THREE.MeshStandardMaterial({color:0x777777})).position.set(-12.3,0.9,0); scene.add(_); new THREE.Mesh(new THREE.BoxGeometry(0.6,1.8,2000), new THREE.MeshStandardMaterial({color:0x777777})).position.set(12.3,0.9,0); scene.add(_);
-            const markGeo = new THREE.BoxGeometry(0.2,0.05,6), markMat = new THREE.MeshBasicMaterial({color:0xffffff}); instancedMarkings = new THREE.InstancedMesh(markGeo,markMat,80); const dummy=new THREE.Object3D(); for(let i=0;i<40;i++){ dummy.position.set(-6.75,0.02,-i*15); dummy.updateMatrix(); instancedMarkings.setMatrixAt(i,dummy.matrix); dummy.position.set(6.75,0.02,-i*15); dummy.updateMatrix(); instancedMarkings.setMatrixAt(i+40,dummy.matrix); } scene.add(instancedMarkings);
-            // Загружаем модель
+            
+            // Дорога
+            const roadMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+            const road = new THREE.Mesh(new THREE.BoxGeometry(24, 0.2, 2000), roadMat);
+            road.position.set(0, -0.1, 0); road.receiveShadow = true; scene.add(road);
+            
+            // Бордюры
+            const barrierMat = new THREE.MeshStandardMaterial({ color: 0x777777 });
+            const leftBarrier = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.8, 2000), barrierMat);
+            leftBarrier.position.set(-12.3, 0.9, 0); scene.add(leftBarrier);
+            const rightBarrier = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.8, 2000), barrierMat);
+            rightBarrier.position.set(12.3, 0.9, 0); scene.add(rightBarrier);
+            
+            // Разметка
+            const markGeo = new THREE.BoxGeometry(0.2, 0.05, 6);
+            const markMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            instancedMarkings = new THREE.InstancedMesh(markGeo, markMat, 80);
+            const dummy = new THREE.Object3D();
+            for(let i = 0; i < 40; i++) {
+                dummy.position.set(-6.75, 0.02, -i * 15);
+                dummy.updateMatrix(); instancedMarkings.setMatrixAt(i, dummy.matrix);
+                dummy.position.set(6.75, 0.02, -i * 15);
+                dummy.updateMatrix(); instancedMarkings.setMatrixAt(i+40, dummy.matrix);
+            }
+            instancedMarkings.instanceMatrix.needsUpdate = true;
+            scene.add(instancedMarkings);
+            
+            // Загружаем модель игрока
             loadCustomCarModel((modelGroup) => {
-                if(modelGroup) { player = modelGroup; customCarGroup = modelGroup; } else { player = createStandardPlayerCar(); }
-                player.position.set(LANES[2], 0, 0); scene.add(player);
+                if(modelGroup) { player = modelGroup; customCarGroup = modelGroup; } 
+                else { player = createStandardPlayerCar(); }
+                player.position.set(LANES[2], 0, 0);
+                scene.add(player);
                 setupControls();
                 gameActive = true;
                 document.getElementById('ui').style.display = 'block';
@@ -882,23 +902,151 @@
             window.addEventListener('blur',()=>{keys.left=false; keys.right=false; keys.gas=false;});
         }
 
-        function spawnEnemy() { if(!gameActive || enemies.length>=6) return; const lane=Math.floor(Math.random()*4); const enemy=new THREE.Group(); enemy.lane=lane; enemy.position.set(LANES[lane],0,-180); enemy.isOncoming=(lane<2); if(enemy.isOncoming) enemy.rotation.y=Math.PI; enemy.baseAiSpeed=0.35+Math.random()*0.45; enemy.aiSpeed=enemy.baseAiSpeed; enemy.userData={ai:{currentSpeed:enemy.baseAiSpeed}}; scene.add(enemy); enemies.push(enemy); }
+        function spawnEnemy() { 
+            if(!gameActive || enemies.length>=6) return; 
+            const lane=Math.floor(Math.random()*4); 
+            const enemy = new THREE.Group();
+            enemy.lane=lane; 
+            enemy.position.set(LANES[lane],0,-180); 
+            enemy.isOncoming=(lane<2); 
+            if(enemy.isOncoming) enemy.rotation.y=Math.PI; 
+            enemy.baseAiSpeed=0.35+Math.random()*0.45; 
+            enemy.aiSpeed=enemy.baseAiSpeed; 
+            enemy.userData={ai:{currentSpeed:enemy.baseAiSpeed}}; 
+            scene.add(enemy); 
+            enemies.push(enemy); 
+        }
 
-        function updateDayNight(delta) { if(!graphicsSettings.dayNightCycle) return; dayTime+=delta; let cycle=(dayTime%DAY_DURATION)/DAY_DURATION; let intensity=Math.sin(cycle*Math.PI*2)*0.5+0.5; sun.intensity=intensity*0.8; ambient.intensity=0.3+intensity*0.4; const isNight=intensity<0.35; if(player && player.userData.headlights) player.userData.headlights.forEach(h=>h.visible=isNight); if(player && player.userData.playerPointLight) player.userData.playerPointLight.visible=isNight; const col=new THREE.Color(0x3d2b56).lerp(new THREE.Color(0x0a0a1a),1-intensity); scene.background=col; scene.fog.color=col; }
+        function updateDayNight(delta) { 
+            if(!graphicsSettings.dayNightCycle) return; 
+            dayTime+=delta; 
+            let cycle=(dayTime%DAY_DURATION)/DAY_DURATION; 
+            let intensity=Math.sin(cycle*Math.PI*2)*0.5+0.5; 
+            sun.intensity=intensity*0.8; 
+            ambient.intensity=0.3+intensity*0.4; 
+            const isNight=intensity<0.35; 
+            if(player && player.userData.headlights) player.userData.headlights.forEach(h=>h.visible=isNight); 
+            if(player && player.userData.playerPointLight) player.userData.playerPointLight.visible=isNight; 
+            const col=new THREE.Color(0x3d2b56).lerp(new THREE.Color(0x0a0a1a),1-intensity); 
+            scene.background=col; scene.fog.color=col; 
+        }
 
-        function updateGasPhysics(delta) { if(!player) return; if(keys.gas) targetSpeed=Math.min(150,targetSpeed+acceleration*delta*60), carPitch=Math.min(0.1,carPitch+0.1*delta*10); else targetSpeed=Math.max(65,targetSpeed-deceleration*delta*60), carPitch=Math.max(-0.05,carPitch-0.05*delta*10); speed+=(targetSpeed-speed)*0.1*delta*60; player.rotation.x+=(carPitch-player.rotation.x)*5*delta; if(Math.abs(targetSpeed-speed)<1) carPitch=0; }
+        function updateGasPhysics(delta) { 
+            if(!player) return; 
+            if(keys.gas) targetSpeed=Math.min(150,targetSpeed+acceleration*delta*60), carPitch=Math.min(0.1,carPitch+0.1*delta*10); 
+            else targetSpeed=Math.max(65,targetSpeed-deceleration*delta*60), carPitch=Math.max(-0.05,carPitch-0.05*delta*10); 
+            speed+=(targetSpeed-speed)*0.1*delta*60; 
+            player.rotation.x+=(carPitch-player.rotation.x)*5*delta; 
+            if(Math.abs(targetSpeed-speed)<1) carPitch=0; 
+        }
 
-        function updateWheelAnimation(delta) { if(player && player.userData.wheels) { const rot=speed*delta*0.05; const steer=-steerMomentum*0.03; player.userData.wheels.forEach(w=>{ w.rotation.x+=rot; if(w.userData?.isFront) w.rotation.y+=(steer-w.rotation.y)*5*delta; }); } }
+        function updateWheelAnimation(delta) { 
+            if(player && player.userData.wheels) { 
+                const rot=speed*delta*0.05; 
+                const steer=-steerMomentum*0.03; 
+                player.userData.wheels.forEach(w=>{ w.rotation.x+=rot; if(w.userData?.isFront) w.rotation.y+=(steer-w.rotation.y)*5*delta; }); 
+            } 
+        }
 
-        function endGame() { gameActive=false; playerData.stats.gamesPlayed++; playerData.stats.totalDistance+=score; playerData.totalKm+=score; if(score>playerData.stats.bestScore) playerData.stats.bestScore=score; savePlayerData(); document.getElementById('gameOverScreen').style.display='flex'; document.getElementById('finalScore').innerText=score.toFixed(1)+" KM DRIVEN"; document.getElementById('ui').style.display='none'; document.getElementById('controls').style.display='none'; }
-        function restartGame() { document.getElementById('gameOverScreen').style.display='none'; if(animationId) cancelAnimationFrame(animationId); gameActive=false; enemies.length=0; if(scene) while(scene.children.length) scene.remove(scene.children[0]); if(renderer && renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement); init(); }
-        function returnToMenu() { document.getElementById('gameOverScreen').style.display='none'; if(animationId) cancelAnimationFrame(animationId); gameActive=false; if(scene) while(scene.children.length) scene.remove(scene.children[0]); if(renderer && renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement); document.getElementById('mainMenu').style.display='flex'; document.getElementById('ui').style.display='none'; document.getElementById('controls').style.display='none'; updateBalanceDisplay(); }
+        function endGame() { 
+            gameActive=false; 
+            playerData.stats.gamesPlayed++; 
+            playerData.stats.totalDistance+=score; 
+            playerData.totalKm+=score; 
+            if(score>playerData.stats.bestScore) playerData.stats.bestScore=score; 
+            savePlayerData(); 
+            document.getElementById('gameOverScreen').style.display='flex'; 
+            document.getElementById('finalScore').innerText=score.toFixed(1)+" KM DRIVEN"; 
+            document.getElementById('ui').style.display='none'; 
+            document.getElementById('controls').style.display='none'; 
+        }
+        
+        function restartGame() { 
+            document.getElementById('gameOverScreen').style.display='none'; 
+            if(animationId) cancelAnimationFrame(animationId); 
+            gameActive=false; 
+            enemies.length=0; 
+            if(scene) while(scene.children.length) scene.remove(scene.children[0]); 
+            if(renderer && renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement); 
+            init(); 
+        }
+        
+        function returnToMenu() { 
+            document.getElementById('gameOverScreen').style.display='none'; 
+            if(animationId) cancelAnimationFrame(animationId); 
+            gameActive=false; 
+            if(scene) while(scene.children.length) scene.remove(scene.children[0]); 
+            if(renderer && renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement); 
+            document.getElementById('mainMenu').style.display='flex'; 
+            document.getElementById('ui').style.display='none'; 
+            document.getElementById('controls').style.display='none'; 
+            updateBalanceDisplay(); 
+        }
 
-        function animate(t) { animationId = requestAnimationFrame(animate); if(!gameActive) return; let now = performance.now(); deltaTime = Math.min(0.1, (now - lastFrameTime)/1000); lastFrameTime = now; updateGame(deltaTime); if(renderer && scene && camera) renderer.render(scene, camera); }
-        function updateGame(delta) { if(!gameActive) return; updateDayNight(delta); score += (speed*delta)/1000; document.getElementById('score').innerText = score.toFixed(1); updateGasPhysics(delta); if(keys.left) steerMomentum -= STEER_ACCEL*delta; else if(keys.right) steerMomentum += STEER_ACCEL*delta; else steerMomentum *= Math.pow(0.05,delta); steerMomentum = Math.max(-MAX_STEER_SPEED, Math.min(MAX_STEER_SPEED, steerMomentum)); if(player) { player.position.x += steerMomentum*delta; if(player.position.x < -11.2) { player.position.x = -11.2; steerMomentum=0; } if(player.position.x > 11.2) { player.position.x = 11.2; steerMomentum=0; } player.rotation.z += (-steerMomentum*0.015 - player.rotation.z)*10*delta; } const worldStep = speed*delta; if(instancedMarkings) { const d=new THREE.Object3D(); for(let i=0;i<80;i++){ instancedMarkings.getMatrixAt(i,d.matrix); d.matrix.decompose(d.position,d.quaternion,d.scale); d.position.z += worldStep; if(d.position.z>40) d.position.z-=600; d.updateMatrix(); instancedMarkings.setMatrixAt(i,d.matrix); } instancedMarkings.instanceMatrix.needsUpdate=true; } for(let i=0;i<enemies.length;i++){ const en=enemies[i]; const finalSpeed=en.isOncoming? (speed+speed*en.aiSpeed):(speed*en.aiSpeed); en.position.z+=finalSpeed*delta; if(en.position.z>80 || en.position.z<-250){ scene.remove(en); enemies.splice(i,1); i--; continue; } if(player && Math.abs(en.position.x-player.position.x)<2.2 && Math.abs(en.position.z-player.position.z)<4.0) endGame(); } updateWheelAnimation(delta); if(Math.random() < 0.04*delta*60*graphicsSettings.trafficDensity && enemies.length<6) spawnEnemy(); }
+        function animate(t) { 
+            animationId = requestAnimationFrame(animate); 
+            if(!gameActive) return; 
+            let now = performance.now(); 
+            deltaTime = Math.min(0.1, (now - lastFrameTime)/1000); 
+            lastFrameTime = now; 
+            updateGame(deltaTime); 
+            if(renderer && scene && camera) renderer.render(scene, camera); 
+        }
+        
+        function updateGame(delta) { 
+            if(!gameActive) return; 
+            updateDayNight(delta); 
+            score += (speed*delta)/1000; 
+            document.getElementById('score').innerText = score.toFixed(1); 
+            updateGasPhysics(delta); 
+            if(keys.left) steerMomentum -= STEER_ACCEL*delta; 
+            else if(keys.right) steerMomentum += STEER_ACCEL*delta; 
+            else steerMomentum *= Math.pow(0.05,delta); 
+            steerMomentum = Math.max(-MAX_STEER_SPEED, Math.min(MAX_STEER_SPEED, steerMomentum)); 
+            if(player) { 
+                player.position.x += steerMomentum*delta; 
+                if(player.position.x < -11.2) { player.position.x = -11.2; steerMomentum=0; } 
+                if(player.position.x > 11.2) { player.position.x = 11.2; steerMomentum=0; } 
+                player.rotation.z += (-steerMomentum*0.015 - player.rotation.z)*10*delta; 
+            } 
+            const worldStep = speed*delta; 
+            if(instancedMarkings) { 
+                const d=new THREE.Object3D(); 
+                for(let i=0;i<80;i++){ 
+                    instancedMarkings.getMatrixAt(i,d.matrix); 
+                    d.matrix.decompose(d.position,d.quaternion,d.scale); 
+                    d.position.z += worldStep; 
+                    if(d.position.z>40) d.position.z-=600; 
+                    d.updateMatrix(); 
+                    instancedMarkings.setMatrixAt(i,d.matrix); 
+                } 
+                instancedMarkings.instanceMatrix.needsUpdate=true; 
+            } 
+            for(let i=0;i<enemies.length;i++){ 
+                const en=enemies[i]; 
+                const finalSpeed=en.isOncoming? (speed+speed*en.aiSpeed):(speed*en.aiSpeed); 
+                en.position.z+=finalSpeed*delta; 
+                if(en.position.z>80 || en.position.z<-250){ scene.remove(en); enemies.splice(i,1); i--; continue; } 
+                if(player && Math.abs(en.position.x-player.position.x)<2.2 && Math.abs(en.position.z-player.position.z)<4.0) endGame(); 
+            } 
+            updateWheelAnimation(delta); 
+            if(Math.random() < 0.04*delta*60*graphicsSettings.trafficDensity && enemies.length<6) spawnEnemy(); 
+        }
 
-        window.onload = () => { loadPlayerData(); setGraphics('medium'); startGame(); };
-        window.onresize = () => { if(camera && renderer){ camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth,window.innerHeight); } };
+        // Запуск игры при загрузке страницы
+        window.onload = () => { 
+            loadPlayerData(); 
+            setGraphics('medium');  // принудительно средние настройки
+            startGame(); 
+        };
+        
+        window.onresize = () => { 
+            if(camera && renderer){ 
+                camera.aspect = window.innerWidth/window.innerHeight; 
+                camera.updateProjectionMatrix(); 
+                renderer.setSize(window.innerWidth,window.innerHeight); 
+            } 
+        };
     </script>
 </body>
 </html>
